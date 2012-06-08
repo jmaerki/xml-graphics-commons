@@ -21,25 +21,27 @@ package org.apache.xmlgraphics.image.writer;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.xmlgraphics.util.Service;
+import org.apache.xmlgraphics.util.Plugins;
+
+import ch.jm.util.services.ServiceListener;
+import ch.jm.util.services.ServiceTracker;
 
 /**
- * Registry for ImageWriter implementations. They are primarily registered through the "Service
- * Provider" mechanism.
- * @see org.apache.xmlgraphics.util.Service
+ * Registry for ImageWriter implementations. They are primarily registered through {@link Plugins}.
  */
 public class ImageWriterRegistry {
 
     private static ImageWriterRegistry instance;
 
-    private Map imageWriterMap = new java.util.HashMap();
-    private Map preferredOrder;
+    private Map<String, List<ImageWriter>> imageWriterMap
+            = new java.util.HashMap<String, List<ImageWriter>>();
+    private Map<String, String> preferredOrder;
 
     /**
      * Default constructor. The default preferred order for the image writers is loaded from the
@@ -61,7 +63,7 @@ public class ImageWriterRegistry {
                             + ioe.getMessage());
             }
         }
-        this.preferredOrder = props;
+        this.preferredOrder = adapt(props);
         setup();
     }
 
@@ -73,12 +75,23 @@ public class ImageWriterRegistry {
      * @param preferredOrder the map of order properties used to order the plug-ins
      */
     public ImageWriterRegistry(Properties preferredOrder) {
-        this.preferredOrder = preferredOrder;
+        this.preferredOrder = adapt(preferredOrder);
         setup();
     }
 
+    private Map<String, String> adapt(Properties props) {
+        Map<String, String> result = new java.util.HashMap<String, String>();
+        Enumeration<?> en = props.propertyNames();
+        while (en.hasMoreElements()) {
+            String key = String.valueOf(en.nextElement());
+            String value = props.getProperty(key);
+            result.put(key, value);
+        }
+        return result;
+    }
+
     /** @return a singleton instance of the ImageWriterRegistry. */
-    public static ImageWriterRegistry getInstance() {
+    public static synchronized ImageWriterRegistry getInstance() {
         if (instance == null) {
             instance = new ImageWriterRegistry();
         }
@@ -86,11 +99,18 @@ public class ImageWriterRegistry {
     }
 
     private void setup() {
-        Iterator iter = Service.providers(ImageWriter.class);
-        while (iter.hasNext()) {
-            ImageWriter writer = (ImageWriter)iter.next();
-            register(writer);
-        }
+        ServiceTracker<ImageWriter> tracker = Plugins.getServiceTracker(ImageWriter.class);
+        tracker.addServiceListener(new ServiceListener<ImageWriter>() {
+
+            public void added(ImageWriter writer) {
+                register(writer);
+            }
+
+            public void removed(ImageWriter writer) {
+                unregister(writer);
+            }
+
+        });
     }
 
     private int getPriority(ImageWriter writer) {
@@ -114,13 +134,25 @@ public class ImageWriterRegistry {
      * @param priority the priority of the writer in the registry.
      * @see #register(ImageWriter)
      */
-    public void register(ImageWriter writer, int priority) {
+    public synchronized void register(ImageWriter writer, int priority) {
+        //TODO refine concurrency. Too much locking right now.
+        List<ImageWriter> entries = imageWriterMap.get(writer.getMIMEType());
+        if (entries == null) {
+            entries = new java.util.ArrayList<ImageWriter>();
+            imageWriterMap.put(writer.getMIMEType(), entries);
+        }
 
-        String key = writer.getClass().getName();
-        // Register the priority to preferredOrder; overwrite original priority if exists
-        preferredOrder.put(key, String.valueOf(priority));
-
-        register(writer);
+        synchronized(entries) {
+            ListIterator<ImageWriter> li = entries.listIterator();
+            while (li.hasNext()) {
+                ImageWriter w = li.next();
+                if (getPriority(w) < priority) {
+                    li.previous();
+                    break;
+                }
+            }
+            li.add(writer);
+        }
     }
 
     /**
@@ -129,23 +161,21 @@ public class ImageWriterRegistry {
      * @param writer the ImageWriter instance to register.
      */
     public void register(ImageWriter writer) {
-        List entries = (List)imageWriterMap.get(writer.getMIMEType());
-        if (entries == null) {
-            entries = new java.util.ArrayList();
-            imageWriterMap.put(writer.getMIMEType(), entries);
-        }
-
         int priority = getPriority(writer);
+        register(writer, priority);
+    }
 
-        ListIterator li = entries.listIterator();
-        while (li.hasNext()) {
-            ImageWriter w = (ImageWriter)li.next();
-            if (getPriority(w) < priority) {
-                li.previous();
-                break;
+    /**
+     * Unregisters an ImageWriter implementation from the registry.
+     * @param writer the ImageWriter instance
+     */
+    public synchronized void unregister(ImageWriter writer) {
+        List<ImageWriter> entries = imageWriterMap.get(writer.getMIMEType());
+        if (entries != null) {
+            synchronized(entries) {
+                entries.remove(writer);
             }
         }
-        li.add(writer);
     }
 
     /**
@@ -155,13 +185,18 @@ public class ImageWriterRegistry {
      *         null if none can be found.
      */
     public ImageWriter getWriterFor(String mime) {
-        List entries = (List)imageWriterMap.get(mime);
+        List<ImageWriter> entries = imageWriterMap.get(mime);
         if (entries == null) {
             return null;
         }
-        Iterator iter = entries.iterator();
-        while (iter.hasNext()) {
-            ImageWriter writer = (ImageWriter)iter.next();
+        List<ImageWriter> copy;
+        synchronized(entries) {
+            //Making a copy since a slow ImageWriter.isFunctional() implementation could affect
+            //performance due to overly long locking.
+            copy = new java.util.ArrayList<ImageWriter>(entries);
+        }
+        for (ImageWriter writer : copy) {
+            //If isFunctional() takes relatively long, this could be a performance
             if (writer.isFunctional()) {
                 return writer;
             }

@@ -33,7 +33,10 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.xmlgraphics.image.loader.ImageFlavor;
 import org.apache.xmlgraphics.image.loader.ImageInfo;
 import org.apache.xmlgraphics.image.loader.util.Penalty;
-import org.apache.xmlgraphics.util.Service;
+import org.apache.xmlgraphics.util.Plugins;
+
+import ch.jm.util.services.ServiceListener;
+import ch.jm.util.services.ServiceTracker;
 
 /**
  * This class is the registry for all implementations of the various service provider interfaces
@@ -48,23 +51,21 @@ public class ImageImplRegistry {
     public static final int INFINITE_PENALTY = Integer.MAX_VALUE;
 
     /** Holds the list of preloaders */
-    private List preloaders = new java.util.ArrayList();
-    //Content: List<ImagePreloader>
+    private List<PreloaderHolder> preloaders = new java.util.ArrayList<PreloaderHolder>();
     private int lastPreloaderIdentifier;
     private int lastPreloaderSort;
 
     /** Holds the list of ImageLoaderFactories */
-    private Map loaders = new java.util.HashMap();
-    //Content: Map<String,Map<ImageFlavor,ImageLoaderFactory>>
+    private Map<String, Map<ImageFlavor, List<ImageLoaderFactory>>> loaders
+            = new java.util.HashMap<String, Map<ImageFlavor, List<ImageLoaderFactory>>>();
 
     /** Holds the list of ImageConverters */
-    private List converters = new java.util.ArrayList();
-    //Content: List<ImageConverter>
+    private List<ImageConverter> converters = new java.util.ArrayList<ImageConverter>();
 
     private int converterModifications;
 
     /** A Map (key: implementation classes) with additional penalties to fine-tune the registry. */
-    private Map additionalPenalties = new java.util.HashMap(); //<String, Penalty>
+    private Map<String, Penalty> additionalPenalties = new java.util.HashMap<String, Penalty>();
     //Note: String as key chosen to avoid possible class-unloading leaks
 
     /** Singleton instance */
@@ -76,7 +77,11 @@ public class ImageImplRegistry {
      */
     public ImageImplRegistry(boolean discover) {
         if (discover) {
-            discoverClasspathImplementations();
+            if (discover) {
+                setupServiceListenersForPreloaders();
+                setupServiceListenersForLoaders();
+                setupServiceListenersForConverters();
+            }
         }
     }
 
@@ -101,25 +106,59 @@ public class ImageImplRegistry {
 
     /**
      * Discovers all implementations in the application's classpath.
+     * @deprecated this method should never have been public.
      */
+    @Deprecated
     public void discoverClasspathImplementations() {
+        //nop
+    }
+
+    private void setupServiceListenersForPreloaders() {
         //Dynamic registration of ImagePreloaders
-        Iterator iter = Service.providers(ImagePreloader.class);
-        while (iter.hasNext()) {
-            registerPreloader((ImagePreloader)iter.next());
-        }
+        ServiceTracker<ImagePreloader> tracker = Plugins.getServiceTracker(ImagePreloader.class);
+        tracker.addServiceListener(new ServiceListener<ImagePreloader>() {
 
+            public void added(ImagePreloader plugin) {
+                registerPreloader(plugin);
+            }
+
+            public void removed(ImagePreloader plugin) {
+                unregisterPreloader(plugin);
+            }
+
+        });
+    }
+
+    private void setupServiceListenersForLoaders() {
         //Dynamic registration of ImageLoaderFactories
-        iter = Service.providers(ImageLoaderFactory.class);
-        while (iter.hasNext()) {
-            registerLoaderFactory((ImageLoaderFactory)iter.next());
-        }
+        ServiceTracker<ImageLoaderFactory> tracker = Plugins.getServiceTracker(ImageLoaderFactory.class);
+        tracker.addServiceListener(new ServiceListener<ImageLoaderFactory>() {
 
+            public void added(ImageLoaderFactory plugin) {
+                registerLoaderFactory(plugin);
+            }
+
+            public void removed(ImageLoaderFactory plugin) {
+                unregisterLoaderFactory(plugin);
+            }
+
+        });
+    }
+
+    private void setupServiceListenersForConverters() {
         //Dynamic registration of ImageConverters
-        iter = Service.providers(ImageConverter.class);
-        while (iter.hasNext()) {
-            registerConverter((ImageConverter)iter.next());
-        }
+        ServiceTracker<ImageConverter> tracker = Plugins.getServiceTracker(ImageConverter.class);
+        tracker.addServiceListener(new ServiceListener<ImageConverter>() {
+
+            public void added(ImageConverter plugin) {
+                registerConverter(plugin);
+            }
+
+            public void removed(ImageConverter plugin) {
+                unregisterConverter(plugin);
+            }
+
+        });
     }
 
     /**
@@ -134,6 +173,24 @@ public class ImageImplRegistry {
         preloaders.add(newPreloaderHolder(preloader));
     }
 
+    /**
+     * Unregisters an {@link ImagePreloader}.
+     * @param preloader An {@link ImagePreloader} instance
+     */
+    public synchronized void unregisterPreloader(ImagePreloader preloader) {
+        Iterator<PreloaderHolder> iter = preloaders.iterator();
+        while (iter.hasNext()) {
+            PreloaderHolder holder = iter.next();
+            if (holder.preloader == preloader) {
+                iter.remove();
+                if (log.isDebugEnabled()) {
+                    log.debug("Unregistered " + preloader.getClass().getName());
+                }
+                break;
+            }
+        }
+    }
+
     private synchronized PreloaderHolder newPreloaderHolder(ImagePreloader preloader) {
         PreloaderHolder holder = new PreloaderHolder();
         holder.preloader = preloader;
@@ -146,6 +203,7 @@ public class ImageImplRegistry {
         private ImagePreloader preloader;
         private int identifier;
 
+        @Override
         public String toString() {
             return preloader + " " + identifier;
         }
@@ -153,14 +211,12 @@ public class ImageImplRegistry {
 
     private synchronized void sortPreloaders() {
         if (this.lastPreloaderIdentifier != this.lastPreloaderSort) {
-            Collections.sort(this.preloaders, new Comparator() {
+            Collections.sort(this.preloaders, new Comparator<PreloaderHolder>() {
 
-                public int compare(Object o1, Object o2) {
-                    PreloaderHolder h1 = (PreloaderHolder)o1;
+                public int compare(PreloaderHolder h1, PreloaderHolder h2) {
                     long p1 = h1.preloader.getPriority();
                     p1 += getAdditionalPenalty(h1.preloader.getClass().getName()).getValue();
 
-                    PreloaderHolder h2 = (PreloaderHolder)o2;
                     int p2 = h2.preloader.getPriority();
                     p2 += getAdditionalPenalty(h2.preloader.getClass().getName()).getValue();
 
@@ -195,9 +251,9 @@ public class ImageImplRegistry {
             String mime = mimes[i];
 
             synchronized (loaders) {
-                Map flavorMap = (Map)loaders.get(mime);
+                Map<ImageFlavor, List<ImageLoaderFactory>> flavorMap = loaders.get(mime);
                 if (flavorMap == null) {
-                    flavorMap = new java.util.HashMap();
+                    flavorMap = new java.util.HashMap<ImageFlavor, List<ImageLoaderFactory>>();
                     loaders.put(mime, flavorMap);
                 }
 
@@ -205,9 +261,9 @@ public class ImageImplRegistry {
                 for (int j = 0, cj = flavors.length; j < cj; j++) {
                     ImageFlavor flavor = flavors[j];
 
-                    List factoryList = (List)flavorMap.get(flavor);
+                    List<ImageLoaderFactory> factoryList = flavorMap.get(flavor);
                     if (factoryList == null) {
-                        factoryList = new java.util.ArrayList();
+                        factoryList = new java.util.ArrayList<ImageLoaderFactory>();
                         flavorMap.put(flavor, factoryList);
                     }
                     factoryList.add(loaderFactory);
@@ -222,10 +278,44 @@ public class ImageImplRegistry {
     }
 
     /**
+     * Unregisters a new {@link ImageLoaderFactory}.
+     * @param loaderFactory An {@link ImageLoaderFactory} instance
+     */
+    public void unregisterLoaderFactory(ImageLoaderFactory loaderFactory) {
+        String[] mimes = loaderFactory.getSupportedMIMETypes();
+        for (int i = 0, ci = mimes.length; i < ci; i++) {
+            String mime = mimes[i];
+
+            synchronized (loaders) {
+                Map<ImageFlavor, List<ImageLoaderFactory>> flavorMap = loaders.get(mime);
+                if (flavorMap == null) {
+                    continue;
+                }
+
+                ImageFlavor[] flavors = loaderFactory.getSupportedFlavors(mime);
+                for (int j = 0, cj = flavors.length; j < cj; j++) {
+                    ImageFlavor flavor = flavors[j];
+
+                    List<ImageLoaderFactory> factoryList = flavorMap.get(flavor);
+                    if (factoryList == null) {
+                        continue;
+                    }
+                    if (factoryList.remove(loaderFactory)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Unregistered " + loaderFactory.getClass().getName()
+                                    + ": MIME = " + mime + ", Flavor = " + flavor);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Returns the Collection of registered ImageConverter instances.
      * @return a Collection<ImageConverter>
      */
-    public Collection getImageConverters() {
+    public Collection<ImageConverter> getImageConverters() {
         return Collections.unmodifiableList(this.converters);
     }
 
@@ -251,23 +341,36 @@ public class ImageImplRegistry {
     }
 
     /**
+     * Unregisters an {@link ImageConverter}.
+     * @param converter An {@link ImageConverter} instance
+     */
+    public void unregisterConverter(ImageConverter converter) {
+        if (converters.remove(converter)) {
+            converterModifications++;
+            if (log.isDebugEnabled()) {
+                log.debug("Unregistered: " + converter.getClass().getName());
+            }
+        }
+    }
+
+    /**
      * Returns an iterator over all registered ImagePreloader instances.
      * @return an iterator over ImagePreloader instances.
      */
-    public Iterator getPreloaderIterator() {
+    public Iterator<ImagePreloader> getPreloaderIterator() {
         sortPreloaders();
-        final Iterator iter = this.preloaders.iterator();
+        final Iterator<PreloaderHolder> iter = this.preloaders.iterator();
         //Unpack the holders
-        return new Iterator() {
+        return new Iterator<ImagePreloader>() {
 
             public boolean hasNext() {
                 return iter.hasNext();
             }
 
-            public Object next() {
-                Object obj = iter.next();
-                if (obj != null) {
-                    return ((PreloaderHolder)obj).preloader;
+            public ImagePreloader next() {
+                PreloaderHolder holder = iter.next();
+                if (holder != null) {
+                    return holder.preloader;
                 } else {
                     return null;
                 }
@@ -289,15 +392,15 @@ public class ImageImplRegistry {
      */
     public ImageLoaderFactory getImageLoaderFactory(ImageInfo imageInfo, ImageFlavor flavor) {
         String mime = imageInfo.getMimeType();
-        Map flavorMap = (Map)loaders.get(mime);
+        Map<ImageFlavor, List<ImageLoaderFactory>> flavorMap = loaders.get(mime);
         if (flavorMap != null) {
-            List factoryList = (List)flavorMap.get(flavor);
+            List<ImageLoaderFactory> factoryList = flavorMap.get(flavor);
             if (factoryList != null && factoryList.size() > 0) {
-                Iterator iter = factoryList.iterator();
+                Iterator<ImageLoaderFactory> iter = factoryList.iterator();
                 int bestPenalty = Integer.MAX_VALUE;
                 ImageLoaderFactory bestFactory = null;
                 while (iter.hasNext()) {
-                    ImageLoaderFactory factory = (ImageLoaderFactory)iter.next();
+                    ImageLoaderFactory factory = iter.next();
                     if (!factory.isSupported(imageInfo)) {
                         continue;
                     }
@@ -323,18 +426,15 @@ public class ImageImplRegistry {
      */
     public ImageLoaderFactory[] getImageLoaderFactories(ImageInfo imageInfo, ImageFlavor flavor) {
         String mime = imageInfo.getMimeType();
-        Collection matches = new java.util.TreeSet(new ImageLoaderFactoryComparator(flavor));
-        Map flavorMap = (Map)loaders.get(mime);
+        Collection<ImageLoaderFactory> matches = new java.util.TreeSet<ImageLoaderFactory>(
+                new ImageLoaderFactoryComparator(flavor));
+        Map<ImageFlavor, List<ImageLoaderFactory>> flavorMap = loaders.get(mime);
         if (flavorMap != null) {
-            Iterator flavorIter = flavorMap.keySet().iterator();
-            while (flavorIter.hasNext()) {
-                ImageFlavor checkFlavor = (ImageFlavor)flavorIter.next();
+            for (ImageFlavor checkFlavor : flavorMap.keySet()) {
                 if (checkFlavor.isCompatible(flavor)) {
-                    List factoryList = (List)flavorMap.get(checkFlavor);
-                    if (factoryList != null && factoryList.size() > 0) {
-                        Iterator factoryIter = factoryList.iterator();
-                        while (factoryIter.hasNext()) {
-                            ImageLoaderFactory factory = (ImageLoaderFactory)factoryIter.next();
+                    List<ImageLoaderFactory> factoryList = flavorMap.get(checkFlavor);
+                    if (factoryList != null && !factoryList.isEmpty()) {
+                        for (ImageLoaderFactory factory : factoryList) {
                             if (factory.isSupported(imageInfo)) {
                                 matches.add(factory);
                             }
@@ -346,12 +446,12 @@ public class ImageImplRegistry {
         if (matches.size() == 0) {
             return null;
         } else {
-            return (ImageLoaderFactory[])matches.toArray(new ImageLoaderFactory[matches.size()]);
+            return matches.toArray(new ImageLoaderFactory[matches.size()]);
         }
     }
 
     /** Comparator for {@link ImageLoaderFactory} classes. */
-    private class ImageLoaderFactoryComparator implements Comparator {
+    private class ImageLoaderFactoryComparator implements Comparator<ImageLoaderFactory> {
 
         private ImageFlavor targetFlavor;
 
@@ -359,13 +459,11 @@ public class ImageImplRegistry {
             this.targetFlavor = targetFlavor;
         }
 
-        public int compare(Object o1, Object o2) {
-            ImageLoaderFactory f1 = (ImageLoaderFactory)o1;
+        public int compare(ImageLoaderFactory f1, ImageLoaderFactory f2) {
             ImageLoader l1 = f1.newImageLoader(targetFlavor);
             long p1 = l1.getUsagePenalty();
             p1 += getAdditionalPenalty(l1.getClass().getName()).getValue();
 
-            ImageLoaderFactory f2 = (ImageLoaderFactory)o2;
             ImageLoader l2 = f2.newImageLoader(targetFlavor);
             long p2 = l2.getUsagePenalty();
             p2 = getAdditionalPenalty(l2.getClass().getName()).getValue();
@@ -384,18 +482,15 @@ public class ImageImplRegistry {
      * @return the array of ImageLoaderFactory instances
      */
     public ImageLoaderFactory[] getImageLoaderFactories(String mime) {
-        Map flavorMap = (Map)loaders.get(mime);
+        Map<ImageFlavor, List<ImageLoaderFactory>> flavorMap = loaders.get(mime);
         if (flavorMap != null) {
-            Set factories = new java.util.HashSet();
-            Iterator iter = flavorMap.values().iterator();
-            while (iter.hasNext()) {
-                List factoryList = (List)iter.next();
+            Set<ImageLoaderFactory> factories = new java.util.HashSet<ImageLoaderFactory>();
+            for (List<ImageLoaderFactory> factoryList : flavorMap.values()) {
                 factories.addAll(factoryList);
             }
             int factoryCount = factories.size();
             if (factoryCount > 0) {
-                return (ImageLoaderFactory[])factories.toArray(
-                        new ImageLoaderFactory[factoryCount]);
+                return factories.toArray(new ImageLoaderFactory[factoryCount]);
             }
         }
         return null;
@@ -424,7 +519,7 @@ public class ImageImplRegistry {
      * @return the additional penalty value
      */
     public Penalty getAdditionalPenalty(String className) {
-        Penalty p = (Penalty)this.additionalPenalties.get(className);
+        Penalty p = this.additionalPenalties.get(className);
         return (p != null ? p : Penalty.ZERO_PENALTY);
     }
 

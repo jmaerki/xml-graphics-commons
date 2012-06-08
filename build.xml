@@ -23,9 +23,9 @@
   <property file="${basedir}/build.properties"/>
   <property environment="env"/>
 
-  <property name="Name" value="Apache XML Graphics Commons"/>
+  <property name="ProjectName" value="Apache XML Graphics Commons"/>
   <property name="name" value="xmlgraphics-commons"/>
-  <property name="year" value="1999-2010"/>
+  <property name="year" value="1999-2012"/>
 
   <property name="javac.debug" value="on"/>
   <property name="javac.optimize" value="off"/>
@@ -122,7 +122,7 @@
   <!-- Initialization target                                               -->
   <!-- =================================================================== -->
   <target name="info">
-    <echo message="------------------- ${Name} ${version} [${year}] ----------------"/>
+    <echo message="------------------- ${ProjectName} ${version} [${year}] ----------------"/>
     <echo message="See build.properties and build-local.properties for additional build settings"/>
     <echo message="${ant.version}"/>
     <echo message="VM: ${java.vm.version}, ${java.vm.vendor}"/>
@@ -133,7 +133,7 @@
 
   <target name="init-avail">
     <available property="jdk15.present" classname="java.lang.StringBuilder"/>
-    <fail message="${Name} requires at least Java 1.5" unless="jdk15.present"/>
+    <fail message="${ProjectName} requires at least Java 1.5" unless="jdk15.present"/>
     
     <condition property="internal-codecs.eff.disabled">
       <equals arg1="${internal-codecs.disabled}" arg2="true"/>
@@ -231,13 +231,20 @@
   <target name="jar-main" depends="compile,uptodate-jar-main" description="Generates the main jar file" unless="jar.main.uptodate">
     <jar jarfile="${build.dir}/${name}-${version}.jar" basedir="${build.classes.dir}">
       <manifest>
-        <attribute name="Implementation-Title" value="${Name}"/>
+        <attribute name="Implementation-Title" value="${ProjectName}"/>
         <attribute name="Implementation-Version" value="${version}"/>
         <attribute name="Implementation-Vendor" value="The Apache Software Foundation (http://xmlgraphics.apache.org/)"/>
         <attribute name="Build-Id" value="${ts} (${user.name} [${os.name} ${os.version} ${os.arch}, Java ${java.runtime.version}])"/>
       </manifest>
       <metainf dir="${basedir}" includes="LICENSE,NOTICE"/>
     </jar>
+    
+    <taskdef resource="aQute/bnd/ant/taskdef.properties" classpath="${lib.dir}/build/biz.aQute.bnd-1.50.0.jar"/>
+    <copy file="${basedir}/${name}.bnd" tofile="${build.dir}/${name}-${version}.bnd"/>
+    <bndwrap output="${build.dir}" definitions="${build.dir}">
+      <fileset dir="${build.dir}" includes="${name}-${version}.jar"/>
+    </bndwrap>
+    <move file="${build.dir}/${name}-${version}.bar" tofile="${build.dir}/${name}-${version}.jar"/>
   </target>
 
   <target name="package.NET" depends="jar-main" if="IKVM.present" description="Generates the .NET DLL using IKVM">
@@ -383,7 +390,7 @@ NOTE:
         destdir="${build.javadocs.dir}"
         author="true"
         version="true"
-        windowtitle="${Name} ${version} API"
+        windowtitle="${ProjectName} ${version} API"
         doctitle="Apache XML Graphics Commons"
         bottom="Copyright ${year} The Apache Software Foundation. All Rights Reserved."
         overview="${src.dir}/java/org/apache/xmlgraphics/overview.html"

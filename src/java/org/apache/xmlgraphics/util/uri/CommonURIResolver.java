@@ -19,27 +19,27 @@
 
 package org.apache.xmlgraphics.util.uri;
 
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.URIResolver;
 
-import org.apache.xmlgraphics.util.Service;
+import org.apache.xmlgraphics.util.Plugins;
+
+import ch.jm.util.services.ServiceListener;
+import ch.jm.util.services.ServiceTracker;
 
 /**
- * A URI Resolver which supports pluggable entities via the {@link Service}
- * mechanism.
+ * A URI Resolver which aggregates other URI resolvers found through {@link Plugins}.
  * <p>
  * This resolver will try all resolvers registered as an {@link URIResolver}
- * class. For proper operation, the registers URIResolvers must return null if
+ * class. For proper operation, the registered URIResolvers must return null if
  * they cannot handle the given URI and fail fast.
  */
 public class CommonURIResolver implements URIResolver {
 
-    private final List uriResolvers = new LinkedList();
+    private final List<URIResolver> uriResolvers = new java.util.LinkedList<URIResolver>();
 
     private final static class DefaultInstanceHolder {
         private static final CommonURIResolver INSTANCE = new CommonURIResolver();
@@ -51,11 +51,18 @@ public class CommonURIResolver implements URIResolver {
      * @see CommonURIResolver#getDefaultURIResolver()
      */
     public CommonURIResolver() {
-        Iterator iter = Service.providers(URIResolver.class);
-        while (iter.hasNext()) {
-            URIResolver resolver = (URIResolver) iter.next();
-            register(resolver);
-        }
+        ServiceTracker<URIResolver> tracker = Plugins.getServiceTracker(URIResolver.class);
+        tracker.addServiceListener(new ServiceListener<URIResolver>() {
+
+            public void added(URIResolver resolver) {
+                register(resolver);
+            }
+
+            public void removed(URIResolver resolver) {
+                unregister(resolver);
+            }
+
+        });
     }
 
     /**
@@ -70,11 +77,9 @@ public class CommonURIResolver implements URIResolver {
     /** {@inheritDoc} */
     public Source resolve(String href, String base) {
         synchronized (uriResolvers) {
-            Iterator it = uriResolvers.iterator();
-            while (it.hasNext()) {
-                final URIResolver currentResolver = (URIResolver) it.next();
+            for (URIResolver resolver : uriResolvers) {
                 try {
-                    final Source result = currentResolver.resolve(href, base);
+                    final Source result = resolver.resolve(href, base);
                     if (result != null) {
                         return result;
                     }
