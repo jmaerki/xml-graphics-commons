@@ -31,6 +31,9 @@ import java.util.Map;
  */
 public final class PSProcSets {
 
+    private PSProcSets() {
+    }
+
     /** the standard procset for the XML Graphics project */
     public static final PSResource STD_PROCSET;
     /** the EPS procset for the XML Graphics project */
@@ -79,7 +82,7 @@ public final class PSProcSets {
         }
 
         public StdProcSet() {
-            super("Apache XML Graphics Std ProcSet", 1.1f, 0);
+            super("Apache XML Graphics Std ProcSet", 1.2f, 0);
         }
 
         public void writeTo(PSGenerator gen) throws IOException {
@@ -99,7 +102,7 @@ public final class PSProcSets {
             Iterator iter = STANDARD_MACROS.entrySet().iterator();
             while (iter.hasNext()) {
                 Map.Entry entry = (Map.Entry)iter.next();
-                gen.writeln("/" + entry.getValue() + "/" + entry.getKey()+" ld");
+                gen.writeln("/" + entry.getValue() + "/" + entry.getKey() + " ld");
             }
 
             gen.writeln("/re {4 2 roll M"); //define rectangle
@@ -126,7 +129,7 @@ public final class PSProcSets {
             // gen.writeln("  currentdict exch get");
             gen.writeln("  /Tf exch def");
             gen.writeln("  Tf findfont Tp scalefont setfont");
-            gen.writeln("  /cf Tf def  /cs Tp def  /cw ( ) stringwidth pop def");
+            gen.writeln("  /cf Tf def  /cs Tp def");
             gen.writeln("} bd");
 
             gen.writeln("/ULS {currentpoint /uy exch def /ux exch def} bd");

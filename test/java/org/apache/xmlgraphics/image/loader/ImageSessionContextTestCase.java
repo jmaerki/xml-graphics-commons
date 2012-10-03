@@ -34,24 +34,25 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
 
-import junit.framework.TestCase;
-
+import org.junit.Test;
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLReader;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import org.apache.xmlgraphics.image.loader.util.ImageUtil;
+import org.apache.xmlgraphics.io.XmlSourceUtil;
 
 /**
  * Tests for AbstractImageSessionContext.
  */
-public class ImageSessionContextTestCase extends TestCase {
+public class ImageSessionContextTestCase {
 
     private MockImageContext imageContext = MockImageContext.getInstance();
 
-    public ImageSessionContextTestCase(String name) {
-        super(name);
-    }
-
+    @Test
     public void testStreamSourceWithSystemID() throws Exception {
         URIResolver resolver = new URIResolver() {
             public Source resolve(String href, String base) throws TransformerException {
@@ -69,6 +70,7 @@ public class ImageSessionContextTestCase extends TestCase {
         assertTrue(imgSrc.isFastSource()); //Access through local file system
     }
 
+    @Test
     public void testStreamSourceWithInputStream() throws Exception {
         URIResolver resolver = new URIResolver() {
             public Source resolve(String href, String base) throws TransformerException {
@@ -92,6 +94,7 @@ public class ImageSessionContextTestCase extends TestCase {
         assertTrue(!imgSrc.isFastSource());
     }
 
+    @Test
     public void testStreamSourceWithFile() throws Exception {
         URIResolver resolver = new URIResolver() {
             public Source resolve(String href, String base) throws TransformerException {
@@ -110,6 +113,7 @@ public class ImageSessionContextTestCase extends TestCase {
         assertTrue(imgSrc.isFastSource()); //Accessed through the local file system
     }
 
+    @Test
     public void testStreamSourceWithInputStreamAndSystemID() throws Exception {
         URIResolver resolver = new URIResolver() {
             public Source resolve(String href, String base) throws TransformerException {
@@ -135,6 +139,7 @@ public class ImageSessionContextTestCase extends TestCase {
                                            //being passed through by the URIResolver)
     }
 
+    @Test
     public void testStreamSourceWithReader() throws Exception {
         URIResolver resolver = new URIResolver() {
             public Source resolve(String href, String base) throws TransformerException {
@@ -150,14 +155,14 @@ public class ImageSessionContextTestCase extends TestCase {
 
         Source src = resolve(uri, resolver);
         assertTrue(src instanceof StreamSource); //Source remains unchanged
-        assertTrue(ImageUtil.hasReader(src));
+        assertTrue(XmlSourceUtil.hasReader(src));
     }
 
     private ImageSource checkImageInputStreamAvailable(String uri, URIResolver resolver) {
         Source src = resolve(uri, resolver);
         assertNotNull("Source must not be null", src);
         assertTrue("Source must be an ImageSource", src instanceof ImageSource);
-        ImageSource imgSrc = (ImageSource)src;
+        ImageSource imgSrc = (ImageSource) src;
         assertTrue(ImageUtil.hasImageInputStream(imgSrc));
         return imgSrc;
     }
@@ -169,6 +174,7 @@ public class ImageSessionContextTestCase extends TestCase {
         return src;
     }
 
+    @Test
     public void testSAXSourceWithSystemID() throws Exception {
         URIResolver resolver = new URIResolver() {
             public Source resolve(String href, String base) throws TransformerException {
@@ -187,6 +193,7 @@ public class ImageSessionContextTestCase extends TestCase {
         assertTrue(imgSrc.isFastSource());
     }
 
+    @Test
     public void testSAXSourceWithInputStream() throws Exception {
         URIResolver resolver = new URIResolver() {
             public Source resolve(String href, String base) throws TransformerException {
@@ -210,6 +217,7 @@ public class ImageSessionContextTestCase extends TestCase {
         checkImageInputStreamAvailable(uri, resolver);
     }
 
+    @Test
     public void testSAXSourceWithReader() throws Exception {
         URIResolver resolver = new URIResolver() {
             public Source resolve(String href, String base) throws TransformerException {
@@ -227,11 +235,12 @@ public class ImageSessionContextTestCase extends TestCase {
 
         Source src = resolve(uri, resolver);
         assertTrue(src instanceof SAXSource); //Source remains unchanged
-        assertTrue(ImageUtil.hasReader(src));
+        assertTrue(XmlSourceUtil.hasReader(src));
     }
 
     private static final String SOME_XML = "<root><child id='1'>Hello World!</child></root>";
 
+    @Test
     public void testSAXSourceWithXMLReader() throws Exception {
         URIResolver resolver = new URIResolver() {
             public Source resolve(String href, String base) throws TransformerException {
@@ -248,11 +257,12 @@ public class ImageSessionContextTestCase extends TestCase {
 
         Source src = resolve(uri, resolver);
         assertTrue(src instanceof SAXSource); //Source remains unchanged
-        SAXSource saxSrc = (SAXSource)src;
+        SAXSource saxSrc = (SAXSource) src;
         assertNotNull(saxSrc.getXMLReader());
         assertNotNull(saxSrc.getInputSource());
     }
 
+    @Test
     public void testDOMSource() throws Exception {
         URIResolver resolver = new URIResolver() {
             public Source resolve(String href, String base) throws TransformerException {
@@ -276,7 +286,7 @@ public class ImageSessionContextTestCase extends TestCase {
 
         Source src = resolve(uri, resolver);
         assertTrue(src instanceof DOMSource); //Source remains unchanged
-        DOMSource domSrc = (DOMSource)src;
+        DOMSource domSrc = (DOMSource) src;
         assertNotNull(domSrc.getNode());
     }
 

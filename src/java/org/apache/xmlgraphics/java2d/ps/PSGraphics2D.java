@@ -46,6 +46,7 @@ import java.io.IOException;
 
 import org.apache.xmlgraphics.java2d.AbstractGraphics2D;
 import org.apache.xmlgraphics.java2d.GraphicContext;
+import org.apache.xmlgraphics.java2d.GraphicsConfigurationWithoutTransparency;
 import org.apache.xmlgraphics.java2d.StrokingTextHandler;
 import org.apache.xmlgraphics.java2d.TextHandler;
 import org.apache.xmlgraphics.ps.PSGenerator;
@@ -56,9 +57,10 @@ import org.apache.xmlgraphics.ps.PSImageUtils;
  * therefore of <tt>Graphics2D</tt>) which is able to generate PostScript
  * code.
  *
- * @author <a href="mailto:keiron@aftexsw.com">Keiron Liddle</a>
  * @version $Id$
  * @see org.apache.xmlgraphics.java2d.AbstractGraphics2D
+ *
+ * Originally authored by Keiron Liddle.
  */
 public class PSGraphics2D extends AbstractGraphics2D {
 
@@ -821,7 +823,7 @@ public class PSGraphics2D extends AbstractGraphics2D {
      * @return the device configuration
      */
     public GraphicsConfiguration getDeviceConfiguration() {
-        return new PSGraphicsConfiguration();
+        return new GraphicsConfigurationWithoutTransparency();
     }
 
     /**

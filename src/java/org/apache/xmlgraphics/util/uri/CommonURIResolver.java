@@ -41,7 +41,7 @@ public class CommonURIResolver implements URIResolver {
 
     private final List<URIResolver> uriResolvers = new java.util.LinkedList<URIResolver>();
 
-    private final static class DefaultInstanceHolder {
+    private static final class DefaultInstanceHolder {
         private static final CommonURIResolver INSTANCE = new CommonURIResolver();
     }
 
