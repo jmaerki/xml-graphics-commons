@@ -1,7 +1,7 @@
 package org.apache.xmlgraphics.util;
 import ch.jm.util.services.ServiceTracker;
 import ch.jm.util.services.Services;
-import ch.jm.util.services.spi.ServicesBackend;
+import ch.jm.util.services.backend.ServicesBackend;
 
 /*
  * Copyright 2012 Jeremias Maerki, Switzerland

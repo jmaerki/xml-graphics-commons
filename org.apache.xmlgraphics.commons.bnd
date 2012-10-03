@@ -10,6 +10,8 @@ Bundle-Vendor: The Apache Software Foundation
 
 Bundle-Activator: org.apache.xmlgraphics.osgi.Activator
 
+SPI-Provider: *
+
 #Export-Package: org.apache.xmlgraphics.commons.*
 Export-Package: org.apache.xmlgraphics.*; version="${version}"
 Private-Package: org.apache.xmlgraphics.osgi
