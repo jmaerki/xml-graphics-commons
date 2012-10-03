@@ -20,12 +20,11 @@
 package org.apache.xmlgraphics.util.io;
 
 import java.io.File;
-import java.io.PipedOutputStream;
-import java.io.PipedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
-
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.net.URL;
 
 import junit.framework.TestCase;
@@ -41,9 +40,9 @@ public class Base64Test extends TestCase {
     private void innerBase64Test(String action, URL in, URL ref) throws Exception {
         InputStream inIS = in.openStream();
 
-        if (action.equals("ROUND"))
+        if (action.equals("ROUND")) {
             ref = in;
-        else if (!action.equals("ENCODE") &&
+        } else if (!action.equals("ENCODE") &&
                  !action.equals("DECODE")) {
             fail("Bad action string");
         }
@@ -73,7 +72,7 @@ public class Base64Test extends TestCase {
         int mismatch = compareStreams(inIS, refIS, action.equals("ENCODE"));
 
         if (mismatch != -1) {
-            fail("Wrong result");
+            fail("Wrong result in " + in.getFile() + ": position " + mismatch);
         }
     }
 
@@ -128,48 +127,57 @@ public class Base64Test extends TestCase {
                 int len2 = is2.read(data2, off2, data2.length - off2);
 
                 if (off1 != 0) {
-                    if (len1 == -1)
+                    if (len1 == -1) {
                         len1 = off1;
-                    else
+                    } else {
                         len1 += off1;
+                    }
                 }
 
                 if (off2 != 0) {
-                    if (len2 == -1)
+                    if (len2 == -1) {
                         len2 = off2;
-                    else
+                    } else {
                         len2 += off2;
+                    }
                 }
 
                 if (len1 == -1) {
-                    if (len2 == -1)
+                    if (len2 == -1) {
                         break; // Both done...
+                    }
 
                     // Only is1 is done...
-                    if (!skipws)
+                    if (!skipws) {
                         return idx;
+                    }
 
                     // check if the rest of is2 is whitespace...
-                    for (int i2 = 0; i2 < len2; i2++)
+                    for (int i2 = 0; i2 < len2; i2++) {
                         if ((data2[i2] != '\n') &&
                             (data2[i2] != '\r') &&
-                            (data2[i2] != ' '))
+                            (data2[i2] != ' ')) {
                             return idx + i2;
+                        }
+                    }
                     off1 = off2 = 0;
                     continue;
                 }
 
                 if (len2 == -1) {
                     // Only is2 is done...
-                    if (!skipws)
+                    if (!skipws) {
                         return idx;
+                    }
 
                     // Check if rest of is1 is whitespace...
-                    for (int i1 = 0; i1 < len1; i1++)
+                    for (int i1 = 0; i1 < len1; i1++) {
                         if ((data1[i1] != '\n') &&
                             (data1[i1] != '\r') &&
-                            (data1[i1] != ' '))
+                            (data1[i1] != ' ')) {
                             return idx + i1;
+                        }
+                    }
                     off1 = off2 = 0;
                     continue;
                 }
@@ -191,17 +199,20 @@ public class Base64Test extends TestCase {
                             continue;
                         }
                     }
-                    if (data1[i1] != data2[i2])
+                    if (data1[i1] != data2[i2]) {
                         return idx+i2;
+                    }
 
                     i1++;
                     i2++;
                 }
 
-                if (i1 != len1)
+                if (i1 != len1) {
                     System.arraycopy(data1, i1, data1, 0, len1 - i1);
-                if (i2 != len2)
+                }
+                if (i2 != len2) {
                     System.arraycopy(data2, i2, data2, 0, len2 - i2);
+                }
                 off1 = len1 - i1;
                 off2 = len2 - i2;
                 idx += i2;
@@ -225,12 +236,15 @@ public class Base64Test extends TestCase {
             this.dst = dst;
         }
 
+        @Override
         public void run() {
             try {
                 byte[] data = new byte[1000];
                 while (true) {
                     int len = src.read(data, 0, data.length);
-                    if (len == -1) break;
+                    if (len == -1) {
+                        break;
+                    }
 
                     dst.write(data, 0, len);
                 }
