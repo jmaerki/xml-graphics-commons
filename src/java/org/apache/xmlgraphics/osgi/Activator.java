@@ -65,6 +65,7 @@ public class Activator implements BundleActivator {
         Plugins.setServicesBackend(null);
         if (this.services != null) {
             this.services.close();
+            this.services = null;
         }
     }
 
