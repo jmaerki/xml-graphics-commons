@@ -38,6 +38,9 @@ package org.apache.xmlgraphics.osgi;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.apache.xmlgraphics.util.Plugins;
 
 import ch.jm.util.services.osgi.ServicesOSGi;
@@ -52,16 +55,19 @@ import ch.jm.util.services.osgi.ServicesOSGi;
  */
 public class Activator implements BundleActivator {
 
+    private final Log log = LogFactory.getLog(Activator.class);
     private volatile ServicesOSGi services;
 
     /** {@inheritDoc} */
     public void start(BundleContext context) throws Exception {
+        log.debug("XGC bundle starts. Replacing Services backend with OSGi-based variant...");
         this.services = new ServicesOSGi(context);
         Plugins.setServicesBackend(this.services);
     }
 
     /** {@inheritDoc} */
     public void stop(BundleContext context) throws Exception {
+        log.debug("XGC bundle stops. Replacing Services backend with plain-Java variant...");
         Plugins.setServicesBackend(null);
         if (this.services != null) {
             this.services.close();

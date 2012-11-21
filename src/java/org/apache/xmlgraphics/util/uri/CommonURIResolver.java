@@ -28,7 +28,6 @@ import javax.xml.transform.URIResolver;
 import org.apache.xmlgraphics.util.Plugins;
 
 import ch.jm.util.services.ServiceListener;
-import ch.jm.util.services.ServiceTracker;
 
 /**
  * A URI Resolver which aggregates other URI resolvers found through {@link Plugins}.
@@ -40,6 +39,7 @@ import ch.jm.util.services.ServiceTracker;
 public class CommonURIResolver implements URIResolver {
 
     private final List<URIResolver> uriResolvers = new java.util.LinkedList<URIResolver>();
+    private final ServiceListener<URIResolver> resolverListener;
 
     private static final class DefaultInstanceHolder {
         private static final CommonURIResolver INSTANCE = new CommonURIResolver();
@@ -51,8 +51,7 @@ public class CommonURIResolver implements URIResolver {
      * @see CommonURIResolver#getDefaultURIResolver()
      */
     public CommonURIResolver() {
-        ServiceTracker<URIResolver> tracker = Plugins.getServiceTracker(URIResolver.class);
-        tracker.addServiceListener(new ServiceListener<URIResolver>() {
+        this.resolverListener = new ServiceListener<URIResolver>() {
 
             public void added(URIResolver resolver) {
                 register(resolver);
@@ -62,7 +61,8 @@ public class CommonURIResolver implements URIResolver {
                 unregister(resolver);
             }
 
-        });
+        };
+        Plugins.addListener(URIResolver.class, this.resolverListener);
     }
 
     /**

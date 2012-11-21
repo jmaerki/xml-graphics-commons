@@ -36,7 +36,6 @@ import org.apache.xmlgraphics.image.loader.util.Penalty;
 import org.apache.xmlgraphics.util.Plugins;
 
 import ch.jm.util.services.ServiceListener;
-import ch.jm.util.services.ServiceTracker;
 
 /**
  * This class is the registry for all implementations of the various service provider interfaces
@@ -62,6 +61,11 @@ public class ImageImplRegistry {
     /** Holds the list of ImageConverters */
     private List<ImageConverter> converters = new java.util.ArrayList<ImageConverter>();
 
+    //service listeners
+    private ServiceListener<ImagePreloader> preloaderListener;
+    private ServiceListener<ImageLoaderFactory> loaderFactoryListener;
+    private ServiceListener<ImageConverter> converterListener;
+
     private int converterModifications;
 
     /** A Map (key: implementation classes) with additional penalties to fine-tune the registry. */
@@ -77,11 +81,9 @@ public class ImageImplRegistry {
      */
     public ImageImplRegistry(boolean discover) {
         if (discover) {
-            if (discover) {
-                setupServiceListenersForPreloaders();
-                setupServiceListenersForLoaders();
-                setupServiceListenersForConverters();
-            }
+            setupServiceListenersForPreloaders();
+            setupServiceListenersForLoaders();
+            setupServiceListenersForConverters();
         }
     }
 
@@ -115,8 +117,7 @@ public class ImageImplRegistry {
 
     private void setupServiceListenersForPreloaders() {
         //Dynamic registration of ImagePreloaders
-        ServiceTracker<ImagePreloader> tracker = Plugins.getServiceTracker(ImagePreloader.class);
-        tracker.addServiceListener(new ServiceListener<ImagePreloader>() {
+        this.preloaderListener = new ServiceListener<ImagePreloader>() {
 
             public void added(ImagePreloader plugin) {
                 registerPreloader(plugin);
@@ -126,13 +127,13 @@ public class ImageImplRegistry {
                 unregisterPreloader(plugin);
             }
 
-        });
+        };
+        Plugins.addListener(ImagePreloader.class, this.preloaderListener);
     }
 
     private void setupServiceListenersForLoaders() {
         //Dynamic registration of ImageLoaderFactories
-        ServiceTracker<ImageLoaderFactory> tracker = Plugins.getServiceTracker(ImageLoaderFactory.class);
-        tracker.addServiceListener(new ServiceListener<ImageLoaderFactory>() {
+        this.loaderFactoryListener = new ServiceListener<ImageLoaderFactory>() {
 
             public void added(ImageLoaderFactory plugin) {
                 registerLoaderFactory(plugin);
@@ -142,13 +143,13 @@ public class ImageImplRegistry {
                 unregisterLoaderFactory(plugin);
             }
 
-        });
+        };
+        Plugins.addListener(ImageLoaderFactory.class, this.loaderFactoryListener);
     }
 
     private void setupServiceListenersForConverters() {
         //Dynamic registration of ImageConverters
-        ServiceTracker<ImageConverter> tracker = Plugins.getServiceTracker(ImageConverter.class);
-        tracker.addServiceListener(new ServiceListener<ImageConverter>() {
+        this.converterListener = new ServiceListener<ImageConverter>() {
 
             public void added(ImageConverter plugin) {
                 registerConverter(plugin);
@@ -158,7 +159,8 @@ public class ImageImplRegistry {
                 unregisterConverter(plugin);
             }
 
-        });
+        };
+        Plugins.addListener(ImageConverter.class, this.converterListener);
     }
 
     /**

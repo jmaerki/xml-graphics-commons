@@ -1,5 +1,5 @@
 package org.apache.xmlgraphics.util;
-import ch.jm.util.services.ServiceTracker;
+import ch.jm.util.services.ServiceListener;
 import ch.jm.util.services.Services;
 import ch.jm.util.services.backend.ServicesBackend;
 
@@ -39,12 +39,24 @@ public class Plugins {
      */
     private static final Services SERVICES = new Services();
 
+    /**
+     * Replaces the services backend.
+     * @param backend the new backend to use
+     */
     public static void setServicesBackend(ServicesBackend backend) {
         SERVICES.setServicesBackend(backend);
     }
 
-    public static <T> ServiceTracker<T> getServiceTracker(Class<T> providerIntf) {
-        return SERVICES.getServiceTracker(providerIntf);
+    /**
+     * Convenience method to register a {@link ServiceListener} for a service provider
+     * interface. This can be used when you have no way of knowing when a service
+     * discovery client is no longer in use. In this case, we rely on garbage collection.
+     * @param <T> the service provider interface
+     * @param providerIntf the service provider interface
+     * @param listener the service listener
+     */
+    public static <T> void addListener(Class<T> providerIntf, ServiceListener<T> listener) {
+        SERVICES.addListener(providerIntf, listener);
     }
 
 }

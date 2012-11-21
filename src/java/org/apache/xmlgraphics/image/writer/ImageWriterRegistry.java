@@ -30,7 +30,6 @@ import java.util.Properties;
 import org.apache.xmlgraphics.util.Plugins;
 
 import ch.jm.util.services.ServiceListener;
-import ch.jm.util.services.ServiceTracker;
 
 /**
  * Registry for {@link ImageWriter} implementations.
@@ -43,6 +42,8 @@ public class ImageWriterRegistry {
     private Map<String, List<ImageWriter>> imageWriterMap
             = new java.util.HashMap<String, List<ImageWriter>>();
     private Map<String, Integer> preferredOrder;
+
+    private ServiceListener<ImageWriter> writerListener;
 
     /**
      * Default constructor. The default preferred order for the image writers is loaded from the
@@ -98,8 +99,7 @@ public class ImageWriterRegistry {
     }
 
     private void setup() {
-        ServiceTracker<ImageWriter> tracker = Plugins.getServiceTracker(ImageWriter.class);
-        tracker.addServiceListener(new ServiceListener<ImageWriter>() {
+        this.writerListener = new ServiceListener<ImageWriter>() {
 
             public void added(ImageWriter writer) {
                 register(writer);
@@ -109,7 +109,8 @@ public class ImageWriterRegistry {
                 unregister(writer);
             }
 
-        });
+        };
+        Plugins.addListener(ImageWriter.class, this.writerListener);
     }
 
     private int getPriority(ImageWriter writer) {
