@@ -359,30 +359,15 @@ public class ImageImplRegistry {
      * Returns an iterator over all registered ImagePreloader instances.
      * @return an iterator over ImagePreloader instances.
      */
-    public Iterator<ImagePreloader> getPreloaderIterator() {
+    public synchronized Iterator<ImagePreloader> getPreloaderIterator() {
         sortPreloaders();
-        final Iterator<PreloaderHolder> iter = this.preloaders.iterator();
+
+        List<ImagePreloader> copy = new java.util.ArrayList<ImagePreloader>();
         //Unpack the holders
-        return new Iterator<ImagePreloader>() {
-
-            public boolean hasNext() {
-                return iter.hasNext();
-            }
-
-            public ImagePreloader next() {
-                PreloaderHolder holder = iter.next();
-                if (holder != null) {
-                    return holder.preloader;
-                } else {
-                    return null;
-                }
-            }
-
-            public void remove() {
-                iter.remove();
-            }
-
-        };
+        for (PreloaderHolder holder : this.preloaders) {
+            copy.add(holder.preloader);
+        }
+        return Collections.unmodifiableList(copy).iterator();
     }
 
     /**
