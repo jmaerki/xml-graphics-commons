@@ -19,6 +19,8 @@
 
 package org.apache.xmlgraphics.image;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.color.ColorSpace;
@@ -32,6 +34,7 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.DataBufferShort;
 import java.awt.image.DataBufferUShort;
 import java.awt.image.DirectColorModel;
+import java.awt.image.IndexColorModel;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
@@ -167,8 +170,9 @@ public final class GraphicsUtil {
     public static CachableRed convertToLsRGB(CachableRed src) {
         ColorModel cm = src.getColorModel();
         ColorSpace cs = cm.getColorSpace();
-        if (cs == ColorSpace.getInstance(ColorSpace.CS_LINEAR_RGB))
+        if (cs == ColorSpace.getInstance(ColorSpace.CS_LINEAR_RGB)) {
             return src;
+        }
 
         return new Any2LsRGBRed(src);
     }
@@ -186,8 +190,9 @@ public final class GraphicsUtil {
     public static CachableRed convertTosRGB(CachableRed src) {
         ColorModel cm = src.getColorModel();
         ColorSpace cs = cm.getColorSpace();
-        if (cs == ColorSpace.getInstance(ColorSpace.CS_sRGB))
+        if (cs == ColorSpace.getInstance(ColorSpace.CS_sRGB)) {
             return src;
+        }
 
         return new Any2sRGBRed(src);
     }
@@ -206,10 +211,12 @@ public final class GraphicsUtil {
      * @return   a CacheableRed that contains the same data as ri.
      */
     public static CachableRed wrap(RenderedImage ri) {
-        if (ri instanceof CachableRed)
+        if (ri instanceof CachableRed) {
             return (CachableRed) ri;
-        if (ri instanceof BufferedImage)
+        }
+        if (ri instanceof BufferedImage) {
             return new BufferedImageCachableRed((BufferedImage)ri);
+        }
         return new RenderedImageCachableRed(ri);
     }
 
@@ -227,18 +234,24 @@ public final class GraphicsUtil {
     public static void copyData_INT_PACK(Raster src, WritableRaster dst) {
         // System.out.println("Fast copyData");
         int x0 = dst.getMinX();
-        if (x0 < src.getMinX()) x0 = src.getMinX();
+        if (x0 < src.getMinX()) {
+            x0 = src.getMinX();
+        }
 
         int y0 = dst.getMinY();
-        if (y0 < src.getMinY()) y0 = src.getMinY();
+        if (y0 < src.getMinY()) {
+            y0 = src.getMinY();
+        }
 
         int x1 = dst.getMinX()+dst.getWidth()-1;
-        if (x1 > src.getMinX()+src.getWidth()-1)
+        if (x1 > src.getMinX()+src.getWidth()-1) {
             x1 = src.getMinX()+src.getWidth()-1;
+        }
 
         int y1 = dst.getMinY()+dst.getHeight()-1;
-        if (y1 > src.getMinY()+src.getHeight()-1)
+        if (y1 > src.getMinY()+src.getHeight()-1) {
             y1 = src.getMinY()+src.getHeight()-1;
+        }
 
         int width  = x1-x0+1;
         int height = y1-y0+1;
@@ -284,8 +297,9 @@ public final class GraphicsUtil {
             for (int y=0; y<height; y++) {
                 int srcSP = srcBase+y*srcScanStride;
                 int dstSP = dstBase+y*dstScanStride;
-                for (int x=0; x<width; x++)
+                for (int x=0; x<width; x++) {
                     dstPixels[dstSP++] = srcPixels[srcSP++];
+                }
             }
         }
     }
@@ -294,18 +308,24 @@ public final class GraphicsUtil {
         // System.out.println("Fallback copyData");
 
         int x0 = dst.getMinX();
-        if (x0 < src.getMinX()) x0 = src.getMinX();
+        if (x0 < src.getMinX()) {
+            x0 = src.getMinX();
+        }
 
         int y0 = dst.getMinY();
-        if (y0 < src.getMinY()) y0 = src.getMinY();
+        if (y0 < src.getMinY()) {
+            y0 = src.getMinY();
+        }
 
         int x1 = dst.getMinX()+dst.getWidth()-1;
-        if (x1 > src.getMinX()+src.getWidth()-1)
+        if (x1 > src.getMinX()+src.getWidth()-1) {
             x1 = src.getMinX()+src.getWidth()-1;
+        }
 
         int y1 = dst.getMinY()+dst.getHeight()-1;
-        if (y1 > src.getMinY()+src.getHeight()-1)
+        if (y1 > src.getMinY()+src.getHeight()-1) {
             y1 = src.getMinY()+src.getHeight()-1;
+        }
 
         int width  = x1-x0+1;
         int [] data = null;
@@ -499,8 +519,9 @@ public final class GraphicsUtil {
      */
     public static ColorModel
         coerceColorModel(ColorModel cm, boolean newAlphaPreMult) {
-        if (cm.isAlphaPremultiplied() == newAlphaPreMult)
+        if (cm.isAlphaPremultiplied() == newAlphaPreMult) {
             return cm;
+        }
 
         // Easiest way to build proper colormodel for new Alpha state...
         // Eventually this should switch on known ColorModel types and
@@ -523,13 +544,15 @@ public final class GraphicsUtil {
 
         // System.out.println("CoerceData: " + cm.isAlphaPremultiplied() +
         //                    " Out: " + newAlphaPreMult);
-        if (!cm.hasAlpha())
+        if (!cm.hasAlpha()) {
             // Nothing to do no alpha channel
             return cm;
+        }
 
-        if (cm.isAlphaPremultiplied() == newAlphaPreMult)
+        if (cm.isAlphaPremultiplied() == newAlphaPreMult) {
             // nothing to do alpha state matches...
             return cm;
+        }
 
         // System.out.println("CoerceData: " + wr.getSampleModel());
 
@@ -543,11 +566,11 @@ public final class GraphicsUtil {
     }
 
     public static void multiplyAlpha(WritableRaster wr) {
-        if (is_BYTE_COMP_Data(wr.getSampleModel()))
+        if (is_BYTE_COMP_Data(wr.getSampleModel())) {
             mult_BYTE_COMP_Data(wr);
-        else if (is_INT_PACK_Data(wr.getSampleModel(), true))
+        } else if (is_INT_PACK_Data(wr.getSampleModel(), true)) {
             mult_INT_PACK_Data(wr);
-        else {
+        } else {
             int [] pixel = null;
             int    bands = wr.getNumBands();
             float  norm = 1f/255f;
@@ -557,26 +580,28 @@ public final class GraphicsUtil {
             x1 = x0+wr.getWidth();
             y0 = wr.getMinY();
             y1 = y0+wr.getHeight();
-            for (int y=y0; y<y1; y++)
+            for (int y=y0; y<y1; y++) {
                 for (int x=x0; x<x1; x++) {
                     pixel = wr.getPixel(x,y,pixel);
                     a = pixel[bands-1];
                     if ((a >= 0) && (a < 255)) {
                         alpha = a*norm;
-                        for (b=0; b<bands-1; b++)
+                        for (b=0; b<bands-1; b++) {
                             pixel[b] = (int)(pixel[b]*alpha+0.5f);
+                        }
                         wr.setPixel(x,y,pixel);
                     }
                 }
+            }
         }
     }
 
     public static void divideAlpha(WritableRaster wr) {
-        if (is_BYTE_COMP_Data(wr.getSampleModel()))
+        if (is_BYTE_COMP_Data(wr.getSampleModel())) {
             divide_BYTE_COMP_Data(wr);
-        else if (is_INT_PACK_Data(wr.getSampleModel(), true))
+        } else if (is_INT_PACK_Data(wr.getSampleModel(), true)) {
             divide_INT_PACK_Data(wr);
-        else {
+        } else {
             int x0, x1, y0, y1, a, b;
             float ialpha;
             int    bands = wr.getNumBands();
@@ -586,17 +611,19 @@ public final class GraphicsUtil {
             x1 = x0+wr.getWidth();
             y0 = wr.getMinY();
             y1 = y0+wr.getHeight();
-            for (int y=y0; y<y1; y++)
+            for (int y=y0; y<y1; y++) {
                 for (int x=x0; x<x1; x++) {
                     pixel = wr.getPixel(x,y,pixel);
                     a = pixel[bands-1];
                     if ((a > 0) && (a < 255)) {
                         ialpha = 255/(float)a;
-                        for (b=0; b<bands-1; b++)
+                        for (b=0; b<bands-1; b++) {
                             pixel[b] = (int)(pixel[b]*ialpha+0.5f);
+                        }
                         wr.setPixel(x,y,pixel);
                     }
                 }
+            }
         }
     }
 
@@ -643,13 +670,14 @@ public final class GraphicsUtil {
         // System.out.println("Dst has: " + dstAlpha +
         //                    " is: " + dst.isAlphaPremultiplied());
 
-        if (srcAlpha == dstAlpha)
+        if (srcAlpha == dstAlpha) {
             if (!srcAlpha ||
                     src.isAlphaPremultiplied() == dst.isAlphaPremultiplied()) {
                 // They match one another so just copy everything...
                 copyData(src.getRaster(), dst.getRaster());
                 return;
             }
+        }
 
         // System.out.println("Using Slow CopyData");
 
@@ -693,8 +721,9 @@ public final class GraphicsUtil {
                     break;
                 default:
                     while(in >= 0) {
-                        for (b=0; b<bands-1; b++)
+                        for (b=0; b<bands-1; b++) {
                             oPix[out--] = pixel[in--];
+                        }
                         out--;
                     }
                 }
@@ -711,9 +740,9 @@ public final class GraphicsUtil {
                 case 4:
                     while(in >= 0) {
                         a = pixel[in];
-                        if (a == 255)
+                        if (a == 255) {
                             in -= 4;
-                        else {
+                        } else {
                             in--;
                             alpha = fpNorm*a;
                             pixel[in] = (pixel[in]*alpha+pt5)>>>24; in--;
@@ -725,9 +754,9 @@ public final class GraphicsUtil {
                 default:
                     while(in >= 0) {
                         a = pixel[in];
-                        if (a == 255)
+                        if (a == 255) {
                             in -= bands;
-                        else {
+                        } else {
                             in--;
                             alpha = fpNorm*a;
                             for (b=0; b<bands-1; b++) {
@@ -750,9 +779,9 @@ public final class GraphicsUtil {
                 case 4:
                     while(in >= 0) {
                         a = pixel[in];
-                        if ((a <= 0) || (a >= 255))
+                        if ((a <= 0) || (a >= 255)) {
                             in -= 4;
-                        else {
+                        } else {
                             in--;
                             ialpha = fpNorm/a;
                             pixel[in] = (pixel[in]*ialpha+pt5)>>>16; in--;
@@ -764,9 +793,9 @@ public final class GraphicsUtil {
                 default:
                     while(in >= 0) {
                         a = pixel[in];
-                        if ((a <= 0) || (a >= 255))
+                        if ((a <= 0) || (a >= 255)) {
                             in -= bands;
-                        else {
+                        } else {
                             in--;
                             ialpha = fpNorm/a;
                             for (b=0; b<bands-1; b++) {
@@ -792,15 +821,19 @@ public final class GraphicsUtil {
                     if (a > 0) {
                         if (a < 255) {
                             ialpha = fpNorm/a;
-                            for (b=0; b<bands; b++)
+                            for (b=0; b<bands; b++) {
                                 oPix[out--] = (pixel[in--]*ialpha+pt5)>>>16;
-                        } else
-                            for (b=0; b<bands; b++)
+                            }
+                        } else {
+                            for (b=0; b<bands; b++) {
                                 oPix[out--] = pixel[in--];
+                            }
+                        }
                     } else {
                         in -= bands;
-                        for (b=0; b<bands; b++)
+                        for (b=0; b<bands; b++) {
                             oPix[out--] = 255;
+                        }
                     }
                 }
                 dstR.setPixels(x0+dx, y+dy, w, 1, oPix);
@@ -810,9 +843,10 @@ public final class GraphicsUtil {
             // just copy the color channels over.
             Rectangle dstRect = new Rectangle(destP.x, destP.y,
                                               srcRect.width, srcRect.height);
-            for (int b=0; b<bands; b++)
+            for (int b=0; b<bands; b++) {
                 copyBand(srcR, srcRect, b,
                          dstR, dstRect, b);
+            }
         }
     }
 
@@ -833,10 +867,16 @@ public final class GraphicsUtil {
         sR = sR.intersection(src.getBounds());
         dR = dR.intersection(dst.getBounds());
         int width, height;
-        if (dR.width  < sR.width)  width  = dR.width;
-        else                       width  = sR.width;
-        if (dR.height < sR.height) height = dR.height;
-        else                       height = sR.height;
+        if (dR.width  < sR.width) {
+            width  = dR.width;
+        } else {
+            width  = sR.width;
+        }
+        if (dR.height < sR.height) {
+            height = dR.height;
+        } else {
+            height = sR.height;
+        }
 
         int x = sR.x+dx;
         int [] samples = null;
@@ -849,35 +889,54 @@ public final class GraphicsUtil {
     public static boolean is_INT_PACK_Data(SampleModel sm,
                                            boolean requireAlpha) {
         // Check ColorModel is of type DirectColorModel
-        if(!(sm instanceof SinglePixelPackedSampleModel)) return false;
+        if(!(sm instanceof SinglePixelPackedSampleModel)) {
+            return false;
+        }
 
         // Check transfer type
-        if(sm.getDataType() != DataBuffer.TYPE_INT)       return false;
+        if(sm.getDataType() != DataBuffer.TYPE_INT) {
+            return false;
+        }
 
         SinglePixelPackedSampleModel sppsm;
         sppsm = (SinglePixelPackedSampleModel)sm;
 
         int [] masks = sppsm.getBitMasks();
         if (masks.length == 3) {
-            if (requireAlpha) return false;
-        } else if (masks.length != 4)
+            if (requireAlpha) {
+                return false;
+            }
+        } else if (masks.length != 4) {
             return false;
+        }
 
-        if(masks[0] != 0x00ff0000) return false;
-        if(masks[1] != 0x0000ff00) return false;
-        if(masks[2] != 0x000000ff) return false;
+        if(masks[0] != 0x00ff0000) {
+            return false;
+        }
+        if(masks[1] != 0x0000ff00) {
+            return false;
+        }
+        if(masks[2] != 0x000000ff) {
+            return false;
+        }
         if ((masks.length == 4) &&
-            (masks[3] != 0xff000000)) return false;
+            (masks[3] != 0xff000000)) {
+            return false;
+        }
 
         return true;
     }
 
         public static boolean is_BYTE_COMP_Data(SampleModel sm) {
             // Check ColorModel is of type DirectColorModel
-            if(!(sm instanceof ComponentSampleModel))    return false;
+            if(!(sm instanceof ComponentSampleModel)) {
+                return false;
+            }
 
             // Check transfer type
-            if(sm.getDataType() != DataBuffer.TYPE_BYTE) return false;
+            if(sm.getDataType() != DataBuffer.TYPE_BYTE) {
+                return false;
+            }
 
             return true;
         }
@@ -983,8 +1042,9 @@ public final class GraphicsUtil {
             while (sp < end) {
               int a = pixels[sp+aOff]&0xFF;
               if (a==0) {
-                for (int b = 0; b < bands; b++)
-                  pixels[sp+bandOff[b]] = (byte)0xFF;
+                for (int b = 0; b < bands; b++) {
+                    pixels[sp+bandOff[b]] = (byte)0xFF;
+                }
               } else if (a<255) {         // this does NOT include a == 255 (0xff) !
                 int aFP = (0x00FF0000/a);
                 for (int b = 0; b < bands; b++) {
@@ -1026,11 +1086,12 @@ public final class GraphicsUtil {
             final int end = sp + width*pixStride;
             while (sp < end) {
               int a = pixels[sp+aOff]&0xFF;
-              if (a!=0xFF)
+              if (a!=0xFF) {
                 for (int b = 0; b < bands; b++) {
                   int i = sp+bandOff[b];
                   pixels[i] = (byte)(((pixels[i]&0xFF)*a)>>8);
                 }
+            }
               sp+=pixStride;
             }
         }
@@ -1104,6 +1165,45 @@ public final class GraphicsUtil {
 */
 
     /**
+     * Returns a BufferedImage based on the given RenderedImage. In the easiest case,
+     * this is a simple typecast. Otherwise, the image is converted to a BufferedImage.
+     * @param img the original image
+     * @return the buffered image
+     */
+    public static BufferedImage toBufferedImage(RenderedImage img) {
+        if (img instanceof BufferedImage) {
+            return (BufferedImage)img;
+        } else {
+            WritableRaster wr = img.getColorModel().createCompatibleWritableRaster(
+                    img.getWidth(), img.getHeight());
+            boolean premult = img.getColorModel().isAlphaPremultiplied();
+            BufferedImage buf = new BufferedImage(img.getColorModel(), wr, premult, null);
+            transferImage(img, buf);
+            return buf;
+        }
+    }
+
+    private static void transferImage(RenderedImage source, BufferedImage target) {
+        Graphics2D g2d = target.createGraphics();
+        try {
+            g2d.setBackground(Color.white);
+            g2d.setColor(Color.black);
+            g2d.clearRect(0, 0, target.getWidth(), target.getHeight());
+
+            AffineTransform at = new AffineTransform();
+            if (source.getWidth() != target.getWidth()
+                    || source.getHeight() != target.getHeight()) {
+                double sx = target.getWidth() / (double)source.getWidth();
+                double sy = target.getHeight() / (double)source.getHeight();
+                at.scale(sx, sy);
+            }
+            g2d.drawRenderedImage(source, at);
+        } finally {
+            g2d.dispose();
+        }
+    }
+
+    /**
      * Extracts an alpha raster from a RenderedImage. The method tries to avoid copying data
      * unnecessarily by checking if the RenderedImage is a BufferedImage which offers suitable
      * direct methods.
@@ -1123,8 +1223,24 @@ public final class GraphicsUtil {
             WritableRaster wraster = GraphicsUtil.makeRasterWritable(image.getData());
             alpha = image.getColorModel().getAlphaRaster(wraster);
         }
+        if (alpha == null && cm instanceof IndexColorModel) {
+            //IndexColorModel.getAlphaRaster() returns null on Oracle JVMs.
+            //Therefore, we need a work-around.
+            BufferedImage bi = toBufferedImage(image);
+            int w = image.getWidth();
+            int h = image.getHeight();
+            WritableRaster wr = Raster.createPackedRaster(DataBuffer.TYPE_BYTE,
+                    w, h, 1, 8, new Point(0, 0));
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    //Potentially slow (Batik's FilterAlphaRed might be faster)
+                    int rgba = bi.getRGB(x, y);
+                    wr.setSample(x, y, 0, rgba >> 24);
+                }
+            }
+            alpha = wr;
+        }
         return alpha;
     }
-
 
 }
