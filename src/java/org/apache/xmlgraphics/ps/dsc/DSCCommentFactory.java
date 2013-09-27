@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-/* $Id$ */
+/* $Id: DSCCommentFactory.java 1345683 2012-06-03 14:50:33Z gadams $ */
 
 package org.apache.xmlgraphics.ps.dsc;
 
@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.xmlgraphics.ps.DSCConstants;
 import org.apache.xmlgraphics.ps.dsc.events.DSCComment;
 import org.apache.xmlgraphics.ps.dsc.events.DSCCommentBeginDocument;
+import org.apache.xmlgraphics.ps.dsc.events.DSCCommentBeginFeature;
 import org.apache.xmlgraphics.ps.dsc.events.DSCCommentBeginResource;
 import org.apache.xmlgraphics.ps.dsc.events.DSCCommentBoundingBox;
 import org.apache.xmlgraphics.ps.dsc.events.DSCCommentDocumentNeededResources;
@@ -31,6 +32,7 @@ import org.apache.xmlgraphics.ps.dsc.events.DSCCommentDocumentSuppliedResources;
 import org.apache.xmlgraphics.ps.dsc.events.DSCCommentEndComments;
 import org.apache.xmlgraphics.ps.dsc.events.DSCCommentEndOfFile;
 import org.apache.xmlgraphics.ps.dsc.events.DSCCommentHiResBoundingBox;
+import org.apache.xmlgraphics.ps.dsc.events.DSCCommentIncludeFeature;
 import org.apache.xmlgraphics.ps.dsc.events.DSCCommentIncludeResource;
 import org.apache.xmlgraphics.ps.dsc.events.DSCCommentLanguageLevel;
 import org.apache.xmlgraphics.ps.dsc.events.DSCCommentPage;
@@ -48,42 +50,55 @@ public final class DSCCommentFactory {
     private DSCCommentFactory() {
     }
 
-    private static final Map DSC_FACTORIES = new java.util.HashMap();
+    private static final Map<String, Class<? extends DSCComment>> DSC_FACTORIES = new java.util.HashMap<String, Class<? extends DSCComment>>();
 
     static {
-        DSC_FACTORIES.put(DSCConstants.END_COMMENTS,
+        register(DSCConstants.END_COMMENTS,
                 DSCCommentEndComments.class);
-        DSC_FACTORIES.put(DSCConstants.BEGIN_RESOURCE,
+        register(DSCConstants.BEGIN_RESOURCE,
                 DSCCommentBeginResource.class);
-        DSC_FACTORIES.put(DSCConstants.INCLUDE_RESOURCE,
+        register(DSCConstants.INCLUDE_RESOURCE,
                 DSCCommentIncludeResource.class);
-        DSC_FACTORIES.put(DSCConstants.PAGE_RESOURCES,
+        register(DSCConstants.PAGE_RESOURCES,
                 DSCCommentPageResources.class);
-        DSC_FACTORIES.put(DSCConstants.BEGIN_DOCUMENT,
+        register(DSCConstants.BEGIN_DOCUMENT,
                 DSCCommentBeginDocument.class);
-        DSC_FACTORIES.put(DSCConstants.PAGE,
+        register(DSCConstants.PAGE,
                 DSCCommentPage.class);
-        DSC_FACTORIES.put(DSCConstants.PAGES,
+        register(DSCConstants.PAGES,
                 DSCCommentPages.class);
-        DSC_FACTORIES.put(DSCConstants.BBOX,
+        register(DSCConstants.BBOX,
                 DSCCommentBoundingBox.class);
-        DSC_FACTORIES.put(DSCConstants.HIRES_BBOX,
+        register(DSCConstants.HIRES_BBOX,
                 DSCCommentHiResBoundingBox.class);
-        DSC_FACTORIES.put(DSCConstants.PAGE_BBOX,
+        register(DSCConstants.PAGE_BBOX,
                 DSCCommentPageBoundingBox.class);
-        DSC_FACTORIES.put(DSCConstants.PAGE_HIRES_BBOX,
+        register(DSCConstants.PAGE_HIRES_BBOX,
                 DSCCommentPageHiResBoundingBox.class);
-        DSC_FACTORIES.put(DSCConstants.LANGUAGE_LEVEL,
+        register(DSCConstants.LANGUAGE_LEVEL,
                 DSCCommentLanguageLevel.class);
-        DSC_FACTORIES.put(DSCConstants.DOCUMENT_NEEDED_RESOURCES,
+        register(DSCConstants.DOCUMENT_NEEDED_RESOURCES,
                 DSCCommentDocumentNeededResources.class);
-        DSC_FACTORIES.put(DSCConstants.DOCUMENT_SUPPLIED_RESOURCES,
+        register(DSCConstants.DOCUMENT_SUPPLIED_RESOURCES,
                 DSCCommentDocumentSuppliedResources.class);
-        DSC_FACTORIES.put(DSCConstants.TITLE,
+        register(DSCConstants.TITLE,
                 DSCCommentTitle.class);
-        DSC_FACTORIES.put(DSCConstants.EOF,
+        register(DSCConstants.EOF,
                 DSCCommentEndOfFile.class);
+        register(DSCConstants.BEGIN_FEATURE,
+                DSCCommentBeginFeature.class);
+        register(DSCConstants.INCLUDE_FEATURE,
+                DSCCommentIncludeFeature.class);
         //TODO Add additional implementations as needed
+    }
+
+    /**
+     * Registers a DSC comment for specialized parsing.
+     * @param name the name of the DSC comment (without the "%%" prefix)
+     * @param clazz the specialized class to instantiate for the comment
+     */
+    public static void register(String name, Class<? extends DSCComment> clazz) {
+        DSC_FACTORIES.put(name, clazz);
     }
 
     /**
@@ -93,12 +108,12 @@ public final class DSCCommentFactory {
      *          DSC comment.
      */
     public static DSCComment createDSCCommentFor(String name) {
-        Class clazz = (Class)DSC_FACTORIES.get(name);
+        Class<? extends DSCComment> clazz = DSC_FACTORIES.get(name);
         if (clazz == null) {
             return null;
         }
         try {
-            return (DSCComment)clazz.newInstance();
+            return clazz.newInstance();
         } catch (InstantiationException e) {
             throw new RuntimeException("Error instantiating instance for '" + name + "': "
                     + e.getMessage());
