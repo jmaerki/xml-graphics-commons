@@ -22,33 +22,41 @@ package org.apache.xmlgraphics.image.codec.tiff;
 public enum CompressionValue {
     /** No compression. */
     NONE(1),
+
     /**
      * Modified Huffman Compression (CCITT Group 3 1D facsimile compression).
      * <p><b>Not currently supported.</b>
      */
-    GROUP3_1D(2),
+    GROUP3_1D(2, "CCITT RLE"),
+
     /**
      * CCITT T.4 bilevel compression (CCITT Group 3 2D facsimile compression).
      * <p><b>Not currently supported.</b>
      */
-    GROUP3_2D(3),
+    GROUP3_2D(3, "CCITT T.4"),
+
     /**
      * CCITT T.6 bilevel compression (CCITT Group 4 facsimile compression).
      * <p><b>Not currently supported.</b>
      */
-    GROUP4(4),
+    GROUP4(4, "CCITT", "CCITT T.6"),
+
     /** LZW compression. <p><b>Not supported.</b> */
     LZW(5),
+
     /**
-     * Code for original JPEG-in-TIFF compression which has been depricated (for many good reasons)
+     * Code for original JPEG-in-TIFF compression which has been deprecated (for many good reasons)
      * in favor of Tech Note 2 JPEG compression (compression scheme 7).
      * <p><b>Not supported.</b>
      */
-    JPEG_BROKEN(6),
+    JPEG_BROKEN(6, "Old JPEG"),
+
     /** <a href="ftp://ftp.sgi.com/graphics/tiff/TTN2.draft.txt"> JPEG-in-TIFF</a> compression. */
-    JPEG_TTN2(7),
+    JPEG_TTN2(7, "JPEG"),
+
     /** Byte-oriented run-length encoding "PackBits" compression. */
     PACKBITS(32773),
+
     /**
      * <a href="http://info.internet.isi.edu:80/in-notes/rfc/files/rfc1951.txt">
      * DEFLATE</a> lossless compression (also known as "Zip-in-TIFF").
@@ -56,9 +64,11 @@ public enum CompressionValue {
     DEFLATE(32946);
 
     private final int compressionValue;
+    private final String[] additionalNames;
 
-    private CompressionValue(int compressionValue) {
+    private CompressionValue(int compressionValue, String... additionalNames) {
         this.compressionValue = compressionValue;
+        this.additionalNames = additionalNames;
     }
 
     int getValue() {
@@ -77,6 +87,11 @@ public enum CompressionValue {
         for (CompressionValue cv : CompressionValue.values()) {
             if (cv.toString().equalsIgnoreCase(name)) {
                 return cv;
+            }
+            for (String additionalName : cv.additionalNames) {
+                if (additionalName.equalsIgnoreCase(name)) {
+                    return cv;
+                }
             }
         }
         throw new IllegalArgumentException("Unknown compression value: " + name);
