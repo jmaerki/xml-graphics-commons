@@ -115,8 +115,11 @@ public abstract class FormGenerator {
         }
         gen.writeDSCComment(DSCConstants.BEGIN_RESOURCE,
                 new Object[] {PSResource.TYPE_FORM, getFormName()});
-        if (title != null) {
-            gen.writeDSCComment(DSCConstants.TITLE, title);
+        if (title != null && title.trim().length() > 0) {
+            //When the title contains a data URI, it can get very long, so truncate it.
+            final int titleMaxLength = 255 - 12;
+            String truncatedTitle = title.substring(0, Math.min(titleMaxLength, title.length()));
+            gen.writeDSCComment(DSCConstants.TITLE, truncatedTitle);
         }
         gen.writeln("/" + formName);
         gen.writeln("<< /FormType 1");
