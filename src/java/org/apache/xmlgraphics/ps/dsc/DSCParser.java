@@ -29,7 +29,6 @@ import java.util.NoSuchElementException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.apache.xmlgraphics.ps.DSCConstants;
 import org.apache.xmlgraphics.ps.PSGenerator;
 import org.apache.xmlgraphics.ps.dsc.events.DSCAtend;
@@ -59,6 +58,7 @@ public class DSCParser implements DSCParserConstants {
     private DSCListener filterListener;
     private List listeners;
     private boolean listenersDisabled = false;
+    private long currentLine;
 
     /**
      * Creates a new DSC parser.
@@ -81,7 +81,12 @@ public class DSCParser implements DSCParserConstants {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("Incompatible VM! " + e.getMessage());
         }
+        currentLine = 0;
         parseNext();
+    }
+
+    public long getCurrentLine() {
+        return currentLine;
     }
 
     /**
@@ -111,6 +116,7 @@ public class DSCParser implements DSCParserConstants {
         String line;
         line = this.reader.readLine();
         checkLine(line);
+        currentLine++;
 
         return line;
     }
@@ -118,10 +124,12 @@ public class DSCParser implements DSCParserConstants {
     private void checkLine(String line) throws DSCException {
         if (line == null) {
             if (!eofFound) {
-                throw new DSCException("%%EOF not found. File is not well-formed.");
+                throw new DSCException("%%EOF not found. File is not well-formed."
+                        + " Line: " + currentLine);
             }
         } else if (line.length() > 255) {
-            warn("Line longer than 255 characters. This file is not fully PostScript conforming.");
+            warn("Line longer than 255 characters."
+                    + " This file is not fully PostScript conforming. Line: " + currentLine);
         }
     }
 
@@ -296,7 +304,7 @@ public class DSCParser implements DSCParserConstants {
         String line = readLine();
         if (line != null) {
             if (eofFound && (line.length() > 0)) {
-                throw new DSCException("Content found after EOF");
+                throw new DSCException("Content found after EOF. Line: " + currentLine);
             }
             if (line.startsWith("%%")) {
                 DSCComment comment = parseDSCLine(line);
@@ -325,7 +333,8 @@ public class DSCParser implements DSCParserConstants {
         if (this.currentEvent.getEventType() == LINE) {
             return ((PostScriptLine)this.currentEvent).getLine();
         } else {
-            throw new IllegalStateException("Current event is not a PostScript line");
+            throw new IllegalStateException(
+                    "Current event is not a PostScript line. Line: " + currentLine);
         }
     }
 
