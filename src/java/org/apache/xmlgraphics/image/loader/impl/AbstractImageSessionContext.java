@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.MalformedURLException;
@@ -39,7 +40,6 @@ import javax.xml.transform.stream.StreamSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.apache.xmlgraphics.image.loader.ImageSessionContext;
 import org.apache.xmlgraphics.image.loader.ImageSource;
 import org.apache.xmlgraphics.image.loader.util.ImageUtil;
@@ -127,7 +127,11 @@ public abstract class AbstractImageSessionContext implements ImageSessionContext
                     this.in = null;
                 }
             } else {
-                return method.invoke(iin, args);
+                try {
+                    return method.invoke(iin, args);
+                } catch (InvocationTargetException e) {
+                    throw e.getCause();
+                }
             }
         }
 
