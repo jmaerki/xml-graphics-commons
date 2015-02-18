@@ -20,6 +20,7 @@
 package org.apache.xmlgraphics.image.loader.impl;
 
 import java.awt.geom.Rectangle2D;
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteOrder;
 
@@ -100,6 +101,9 @@ public class PreloaderEPS extends AbstractImagePreloader {
             } else {
                 return null;
             }
+        } catch (EOFException ee) {
+            in.reset();
+            return null;
         } finally {
             in.setByteOrder(originalByteOrder);
         }
