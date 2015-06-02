@@ -72,7 +72,7 @@ public class DSCParser implements DSCParserConstants {
             this.in = in;
         } else {
             //Decorate for better performance
-            this.in = new java.io.BufferedInputStream(this.in);
+            this.in = new java.io.BufferedInputStream(in);
         }
         String encoding = "US-ASCII";
         try {
