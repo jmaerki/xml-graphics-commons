@@ -38,13 +38,14 @@ public class PSState implements Serializable {
     public static final String DEFAULT_DASH = "[] 0";
     /** Default color in PostScript */
     public static final Color DEFAULT_RGB_COLOR = Color.black;
+    private static final long serialVersionUID = -3862731539801753248L;
 
     private AffineTransform transform = new AffineTransform();
     private List transformConcatList = new java.util.ArrayList();
 
-    private int linecap = 0;
-    private int linejoin = 0;
-    private float miterLimit = 0;
+    private int linecap;
+    private int linejoin;
+    private float miterLimit;
     private double linewidth = 1.0f;
     private String dashpattern = DEFAULT_DASH;
     private Color color = DEFAULT_RGB_COLOR;

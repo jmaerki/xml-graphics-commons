@@ -33,15 +33,18 @@ import org.apache.xmlgraphics.image.codec.util.PropertyUtil;
 public class TIFFLZWDecoder {
 
     byte[][] stringTable;
-    byte[] data = null;
+    byte[] data;
     byte[] uncompData;
-    int tableIndex, bitsToGet = 9;
-    int bytePointer, bitPointer;
+    int tableIndex;
+    int bitsToGet = 9;
+    int bytePointer;
+//    int bitPointer;
     int dstIndex;
-    int w, h;
-    int predictor, samplesPerPixel;
-    int nextData = 0;
-    int nextBits = 0;
+    int w;
+    int predictor;
+    int samplesPerPixel;
+    int nextData;
+    int nextBits;
 
     int[] andTable = {
         511,
@@ -65,30 +68,31 @@ public class TIFFLZWDecoder {
      */
     public byte[] decode(byte[] data, byte[] uncompData, int h) {
 
-        if(data[0] == (byte)0x00 && data[1] == (byte)0x01) {
+        if (data[0] == (byte)0x00 && data[1] == (byte)0x01) {
             throw new UnsupportedOperationException(PropertyUtil.getString("TIFFLZWDecoder0"));
         }
 
         initializeStringTable();
 
         this.data = data;
-        this.h = h;
+//        this.h = h;
         this.uncompData = uncompData;
 
         // Initialize pointers
         bytePointer = 0;
-        bitPointer = 0;
+//        bitPointer = 0;
         dstIndex = 0;
 
 
         nextData = 0;
         nextBits = 0;
 
-        int code, oldCode = 0;
+        int code;
+        int oldCode = 0;
         byte[] string;
 
-        while ((code = getNextCode()) != 257 &&
-                dstIndex != uncompData.length) {
+        while ((code = getNextCode()) != 257
+                && dstIndex != uncompData.length) {
 
             if (code == 256) {
 
@@ -152,7 +156,7 @@ public class TIFFLZWDecoder {
 
         stringTable = new byte[4096][];
 
-        for (int i=0; i<256; i++) {
+        for (int i = 0; i < 256; i++) {
             stringTable[i] = new byte[1];
             stringTable[i][0] = (byte)i;
         }
@@ -166,7 +170,7 @@ public class TIFFLZWDecoder {
      */
     public void writeString(byte[] string) {
 
-        for (int i=0; i<string.length; i++) {
+        for (int i = 0; i < string.length; i++) {
             uncompData[dstIndex++] = string[i];
         }
     }
@@ -237,11 +241,11 @@ public class TIFFLZWDecoder {
             }
 
             int code =
-                (nextData >> (nextBits - bitsToGet)) & andTable[bitsToGet-9];
+                (nextData >> (nextBits - bitsToGet)) & andTable[bitsToGet - 9];
             nextBits -= bitsToGet;
 
             return code;
-        } catch(ArrayIndexOutOfBoundsException e) {
+        } catch (ArrayIndexOutOfBoundsException e) {
             // Strip not terminated as expected: return EndOfInformation code.
             return 257;
         }

@@ -72,13 +72,13 @@ public final class GraphicsUtil {
     private GraphicsUtil() {
     }
 
-    public static AffineTransform IDENTITY = new AffineTransform();
+    public static final AffineTransform IDENTITY = new AffineTransform();
 
     /**
      * Standard prebuilt Linear_sRGB color model with no alpha */
     public static final ColorModel Linear_sRGB =
-        new DirectColorModel(ColorSpace.getInstance
-                             (ColorSpace.CS_LINEAR_RGB), 24,
+        new DirectColorModel(ColorSpace.getInstance(
+                             ColorSpace.CS_LINEAR_RGB), 24,
                              0x00FF0000, 0x0000FF00,
                              0x000000FF, 0x0, false,
                              DataBuffer.TYPE_INT);
@@ -86,8 +86,8 @@ public final class GraphicsUtil {
      * Standard prebuilt Linear_sRGB color model with premultiplied alpha.
      */
     public static final ColorModel Linear_sRGB_Pre =
-        new DirectColorModel(ColorSpace.getInstance
-                             (ColorSpace.CS_LINEAR_RGB), 32,
+        new DirectColorModel(ColorSpace.getInstance(
+                             ColorSpace.CS_LINEAR_RGB), 32,
                              0x00FF0000, 0x0000FF00,
                              0x000000FF, 0xFF000000, true,
                              DataBuffer.TYPE_INT);
@@ -95,8 +95,8 @@ public final class GraphicsUtil {
      * Standard prebuilt Linear_sRGB color model with unpremultiplied alpha.
      */
     public static final ColorModel Linear_sRGB_Unpre =
-        new DirectColorModel(ColorSpace.getInstance
-                             (ColorSpace.CS_LINEAR_RGB), 32,
+        new DirectColorModel(ColorSpace.getInstance(
+                             ColorSpace.CS_LINEAR_RGB), 32,
                              0x00FF0000, 0x0000FF00,
                              0x000000FF, 0xFF000000, false,
                              DataBuffer.TYPE_INT);
@@ -105,8 +105,8 @@ public final class GraphicsUtil {
      * Standard prebuilt sRGB color model with no alpha.
      */
     public static final ColorModel sRGB =
-        new DirectColorModel(ColorSpace.getInstance
-                             (ColorSpace.CS_sRGB), 24,
+        new DirectColorModel(ColorSpace.getInstance(
+                             ColorSpace.CS_sRGB), 24,
                              0x00FF0000, 0x0000FF00,
                              0x000000FF, 0x0, false,
                              DataBuffer.TYPE_INT);
@@ -114,8 +114,8 @@ public final class GraphicsUtil {
      * Standard prebuilt sRGB color model with premultiplied alpha.
      */
     public static final ColorModel sRGB_Pre =
-        new DirectColorModel(ColorSpace.getInstance
-                             (ColorSpace.CS_sRGB), 32,
+        new DirectColorModel(ColorSpace.getInstance(
+                             ColorSpace.CS_sRGB), 32,
                              0x00FF0000, 0x0000FF00,
                              0x000000FF, 0xFF000000, true,
                              DataBuffer.TYPE_INT);
@@ -123,8 +123,8 @@ public final class GraphicsUtil {
      * Standard prebuilt sRGB color model with unpremultiplied alpha.
      */
     public static final ColorModel sRGB_Unpre =
-        new DirectColorModel(ColorSpace.getInstance
-                             (ColorSpace.CS_sRGB), 32,
+        new DirectColorModel(ColorSpace.getInstance(
+                             ColorSpace.CS_sRGB), 32,
                              0x00FF0000, 0x0000FF00,
                              0x000000FF, 0xFF000000, false,
                              DataBuffer.TYPE_INT);
@@ -243,18 +243,18 @@ public final class GraphicsUtil {
             y0 = src.getMinY();
         }
 
-        int x1 = dst.getMinX()+dst.getWidth()-1;
-        if (x1 > src.getMinX()+src.getWidth()-1) {
-            x1 = src.getMinX()+src.getWidth()-1;
+        int x1 = dst.getMinX() + dst.getWidth() - 1;
+        if (x1 > src.getMinX() + src.getWidth() - 1) {
+            x1 = src.getMinX() + src.getWidth() - 1;
         }
 
-        int y1 = dst.getMinY()+dst.getHeight()-1;
-        if (y1 > src.getMinY()+src.getHeight()-1) {
-            y1 = src.getMinY()+src.getHeight()-1;
+        int y1 = dst.getMinY() + dst.getHeight() - 1;
+        if (y1 > src.getMinY() + src.getHeight() - 1) {
+            y1 = src.getMinY() + src.getHeight() - 1;
         }
 
-        int width  = x1-x0+1;
-        int height = y1-y0+1;
+        int width  = x1 - x0 + 1;
+        int height = y1 - y0 + 1;
 
         SinglePixelPackedSampleModel srcSPPSM;
         srcSPPSM = (SinglePixelPackedSampleModel)src.getSampleModel();
@@ -263,9 +263,9 @@ public final class GraphicsUtil {
         DataBufferInt srcDB         = (DataBufferInt)src.getDataBuffer();
         final int []  srcPixels     = srcDB.getBankData()[0];
         final int     srcBase =
-            (srcDB.getOffset() +
-             srcSPPSM.getOffset(x0-src.getSampleModelTranslateX(),
-                                y0-src.getSampleModelTranslateY()));
+            (srcDB.getOffset()
+             + srcSPPSM.getOffset(x0 - src.getSampleModelTranslateX(),
+                                y0 - src.getSampleModelTranslateY()));
 
 
         SinglePixelPackedSampleModel dstSPPSM;
@@ -275,29 +275,29 @@ public final class GraphicsUtil {
         DataBufferInt dstDB         = (DataBufferInt)dst.getDataBuffer();
         final int []  dstPixels     = dstDB.getBankData()[0];
         final int     dstBase =
-            (dstDB.getOffset() +
-             dstSPPSM.getOffset(x0-dst.getSampleModelTranslateX(),
-                                y0-dst.getSampleModelTranslateY()));
+            (dstDB.getOffset()
+             + dstSPPSM.getOffset(x0 - dst.getSampleModelTranslateX(),
+                                y0 - dst.getSampleModelTranslateY()));
 
-        if ((srcScanStride == dstScanStride) &&
-            (srcScanStride == width)) {
+        if ((srcScanStride == dstScanStride)
+            && (srcScanStride == width)) {
             // System.out.println("VERY Fast copyData");
 
             System.arraycopy(srcPixels, srcBase, dstPixels, dstBase,
-                             width*height);
+                             width * height);
         } else if (width > 128) {
             int srcSP = srcBase;
             int dstSP = dstBase;
-            for (int y=0; y<height; y++) {
+            for (int y = 0; y < height; y++) {
                 System.arraycopy(srcPixels, srcSP, dstPixels, dstSP, width);
                 srcSP += srcScanStride;
                 dstSP += dstScanStride;
             }
         } else {
-            for (int y=0; y<height; y++) {
-                int srcSP = srcBase+y*srcScanStride;
-                int dstSP = dstBase+y*dstScanStride;
-                for (int x=0; x<width; x++) {
+            for (int y = 0; y < height; y++) {
+                int srcSP = srcBase + y * srcScanStride;
+                int dstSP = dstBase + y * dstScanStride;
+                for (int x = 0; x < width; x++) {
                     dstPixels[dstSP++] = srcPixels[srcSP++];
                 }
             }
@@ -317,22 +317,22 @@ public final class GraphicsUtil {
             y0 = src.getMinY();
         }
 
-        int x1 = dst.getMinX()+dst.getWidth()-1;
-        if (x1 > src.getMinX()+src.getWidth()-1) {
-            x1 = src.getMinX()+src.getWidth()-1;
+        int x1 = dst.getMinX() + dst.getWidth() - 1;
+        if (x1 > src.getMinX() + src.getWidth() - 1) {
+            x1 = src.getMinX() + src.getWidth() - 1;
         }
 
-        int y1 = dst.getMinY()+dst.getHeight()-1;
-        if (y1 > src.getMinY()+src.getHeight()-1) {
-            y1 = src.getMinY()+src.getHeight()-1;
+        int y1 = dst.getMinY() + dst.getHeight() - 1;
+        if (y1 > src.getMinY() + src.getHeight() - 1) {
+            y1 = src.getMinY() + src.getHeight() - 1;
         }
 
-        int width  = x1-x0+1;
+        int width  = x1 - x0 + 1;
         int [] data = null;
 
         for (int y = y0; y <= y1; y++)  {
-            data = src.getPixels(x0,y,width,1,data);
-            dst.setPixels       (x0,y,width,1,data);
+            data = src.getPixels(x0, y, width, 1, data);
+            dst.setPixels(x0, y, width, 1, data);
         }
     }
 
@@ -345,8 +345,8 @@ public final class GraphicsUtil {
      * @param dst The destination for the data.
      */
     public static void copyData(Raster src, WritableRaster dst) {
-        if (is_INT_PACK_Data(src.getSampleModel(), false) &&
-            is_INT_PACK_Data(dst.getSampleModel(), false)) {
+        if (is_INT_PACK_Data(src.getSampleModel(), false)
+            && is_INT_PACK_Data(dst.getSampleModel(), false)) {
             copyData_INT_PACK(src, dst);
             return;
         }
@@ -391,12 +391,12 @@ public final class GraphicsUtil {
      * @return    A writable copy of <tt>ras</tt>
      */
     public static WritableRaster copyRaster(Raster ras, int minX, int minY) {
-        WritableRaster ret = Raster.createWritableRaster
-            (ras.getSampleModel(),
-             new Point(0,0));
-        ret = ret.createWritableChild
-            (ras.getMinX()-ras.getSampleModelTranslateX(),
-             ras.getMinY()-ras.getSampleModelTranslateY(),
+        WritableRaster ret = Raster.createWritableRaster(
+            ras.getSampleModel(),
+             new Point(0, 0));
+        ret = ret.createWritableChild(
+            ras.getMinX() - ras.getSampleModelTranslateX(),
+             ras.getMinY() - ras.getSampleModelTranslateY(),
              ras.getWidth(), ras.getHeight(),
              minX, minY, null);
 
@@ -404,13 +404,13 @@ public final class GraphicsUtil {
         DataBuffer srcDB = ras.getDataBuffer();
         DataBuffer retDB = ret.getDataBuffer();
         if (srcDB.getDataType() != retDB.getDataType()) {
-            throw new IllegalArgumentException
-                ("New DataBuffer doesn't match original");
+            throw new IllegalArgumentException(
+                "New DataBuffer doesn't match original");
         }
         int len   = srcDB.getSize();
         int banks = srcDB.getNumBanks();
         int [] offsets = srcDB.getOffsets();
-        for (int b=0; b< banks; b++) {
+        for (int b = 0; b < banks; b++) {
             switch (srcDB.getDataType()) {
             case DataBuffer.TYPE_BYTE: {
                 DataBufferByte srcDBT = (DataBufferByte)srcDB;
@@ -497,13 +497,13 @@ public final class GraphicsUtil {
      */
     public static WritableRaster makeRasterWritable(Raster ras,
                                                     int minX, int minY) {
-        WritableRaster ret = Raster.createWritableRaster
-            (ras.getSampleModel(),
+        WritableRaster ret = Raster.createWritableRaster(
+            ras.getSampleModel(),
              ras.getDataBuffer(),
-             new Point(0,0));
-        ret = ret.createWritableChild
-            (ras.getMinX()-ras.getSampleModelTranslateX(),
-             ras.getMinY()-ras.getSampleModelTranslateY(),
+             new Point(0, 0));
+        ret = ret.createWritableChild(
+            ras.getMinX() - ras.getSampleModelTranslateX(),
+             ras.getMinY() - ras.getSampleModelTranslateY(),
              ras.getWidth(), ras.getHeight(),
              minX, minY, null);
         return ret;
@@ -526,7 +526,7 @@ public final class GraphicsUtil {
         // Easiest way to build proper colormodel for new Alpha state...
         // Eventually this should switch on known ColorModel types and
         // only fall back on this hack when the CM type is unknown.
-        WritableRaster wr = cm.createCompatibleWritableRaster(1,1);
+        WritableRaster wr = cm.createCompatibleWritableRaster(1, 1);
         return cm.coerceData(wr, newAlphaPreMult);
     }
 
@@ -573,23 +573,28 @@ public final class GraphicsUtil {
         } else {
             int [] pixel = null;
             int    bands = wr.getNumBands();
-            float  norm = 1f/255f;
-            int x0, x1, y0, y1, a, b;
+            float  norm = 1f / 255f;
+            int x0;
+            int x1;
+            int y0;
+            int y1;
+            int a;
+            int b;
             float alpha;
             x0 = wr.getMinX();
-            x1 = x0+wr.getWidth();
+            x1 = x0 + wr.getWidth();
             y0 = wr.getMinY();
-            y1 = y0+wr.getHeight();
-            for (int y=y0; y<y1; y++) {
-                for (int x=x0; x<x1; x++) {
-                    pixel = wr.getPixel(x,y,pixel);
-                    a = pixel[bands-1];
+            y1 = y0 + wr.getHeight();
+            for (int y = y0; y < y1; y++) {
+                for (int x = x0; x < x1; x++) {
+                    pixel = wr.getPixel(x, y, pixel);
+                    a = pixel[bands - 1];
                     if ((a >= 0) && (a < 255)) {
-                        alpha = a*norm;
-                        for (b=0; b<bands-1; b++) {
-                            pixel[b] = (int)(pixel[b]*alpha+0.5f);
+                        alpha = a * norm;
+                        for (b = 0; b < bands - 1; b++) {
+                            pixel[b] = (int)(pixel[b] * alpha + 0.5f);
                         }
-                        wr.setPixel(x,y,pixel);
+                        wr.setPixel(x, y, pixel);
                     }
                 }
             }
@@ -602,25 +607,30 @@ public final class GraphicsUtil {
         } else if (is_INT_PACK_Data(wr.getSampleModel(), true)) {
             divide_INT_PACK_Data(wr);
         } else {
-            int x0, x1, y0, y1, a, b;
+            int x0;
+            int x1;
+            int y0;
+            int y1;
+            int a;
+            int b;
             float ialpha;
             int    bands = wr.getNumBands();
             int [] pixel = null;
 
             x0 = wr.getMinX();
-            x1 = x0+wr.getWidth();
+            x1 = x0 + wr.getWidth();
             y0 = wr.getMinY();
-            y1 = y0+wr.getHeight();
-            for (int y=y0; y<y1; y++) {
-                for (int x=x0; x<x1; x++) {
-                    pixel = wr.getPixel(x,y,pixel);
-                    a = pixel[bands-1];
+            y1 = y0 + wr.getHeight();
+            for (int y = y0; y < y1; y++) {
+                for (int x = x0; x < x1; x++) {
+                    pixel = wr.getPixel(x, y, pixel);
+                    a = pixel[bands - 1];
                     if ((a > 0) && (a < 255)) {
-                        ialpha = 255/(float)a;
-                        for (b=0; b<bands-1; b++) {
-                            pixel[b] = (int)(pixel[b]*ialpha+0.5f);
+                        ialpha = 255 / (float)a;
+                        for (b = 0; b < bands - 1; b++) {
+                            pixel[b] = (int)(pixel[b] * ialpha + 0.5f);
                         }
-                        wr.setPixel(x,y,pixel);
+                        wr.setPixel(x, y, pixel);
                     }
                 }
             }
@@ -638,7 +648,7 @@ public final class GraphicsUtil {
         copyData(BufferedImage src, BufferedImage dst) {
         Rectangle srcRect = new Rectangle(0, 0,
                                           src.getWidth(), src.getHeight());
-        copyData(src, srcRect, dst, new Point(0,0));
+        copyData(src, srcRect, dst, new Point(0, 0));
     }
 
 
@@ -671,8 +681,8 @@ public final class GraphicsUtil {
         //                    " is: " + dst.isAlphaPremultiplied());
 
         if (srcAlpha == dstAlpha) {
-            if (!srcAlpha ||
-                    src.isAlphaPremultiplied() == dst.isAlphaPremultiplied()) {
+            if (!srcAlpha
+                    || src.isAlphaPremultiplied() == dst.isAlphaPremultiplied()) {
                 // They match one another so just copy everything...
                 copyData(src.getRaster(), dst.getRaster());
                 return;
@@ -686,33 +696,34 @@ public final class GraphicsUtil {
         WritableRaster dstR  = dst.getRaster();
         int            bands = dstR.getNumBands();
 
-        int dx = destP.x-srcRect.x;
-        int dy = destP.y-srcRect.y;
+        int dx = destP.x - srcRect.x;
+        int dy = destP.y - srcRect.y;
 
         int w  = srcRect.width;
         int x0 = srcRect.x;
         int y0 = srcRect.y;
-        int y1 = y0+srcRect.height-1;
+        int y1 = y0 + srcRect.height - 1;
 
         if (!srcAlpha) {
             // Src has no alpha dest does so set alpha to 1.0 everywhere.
             // System.out.println("Add Alpha");
-            int [] oPix = new int[bands*w];
-            int out = (w*bands)-1; // The 2 skips alpha channel
-            while(out >= 0) {
+            int [] oPix = new int[bands * w];
+            int out = (w * bands) - 1; // The 2 skips alpha channel
+            while (out >= 0) {
                 // Fill alpha channel with 255's
                 oPix[out] = 255;
                 out -= bands;
             }
 
-            int b, in;
-            for (int y=y0; y<=y1; y++) {
-                pixel = srcR.getPixels(x0,y,w,1,pixel);
-                in  = w*(bands-1)-1;
-                out = (w*bands)-2; // The 2 skips alpha channel on last pix
+            int b;
+            int in;
+            for (int y = y0; y <= y1; y++) {
+                pixel = srcR.getPixels(x0, y, w, 1, pixel);
+                in  = w * (bands - 1) - 1;
+                out = (w * bands) - 2; // The 2 skips alpha channel on last pix
                 switch (bands) {
                 case 4:
-                    while(in >= 0) {
+                    while (in >= 0) {
                         oPix[out--] = pixel[in--];
                         oPix[out--] = pixel[in--];
                         oPix[out--] = pixel[in--];
@@ -720,130 +731,153 @@ public final class GraphicsUtil {
                     }
                     break;
                 default:
-                    while(in >= 0) {
-                        for (b=0; b<bands-1; b++) {
+                    while (in >= 0) {
+                        for (b = 0; b < bands - 1; b++) {
                             oPix[out--] = pixel[in--];
                         }
                         out--;
                     }
                 }
-                dstR.setPixels(x0+dx, y+dy, w, 1, oPix);
+                dstR.setPixels(x0 + dx, y + dy, w, 1, oPix);
             }
         } else if (dstAlpha && dst.isAlphaPremultiplied()) {
             // Src and dest have Alpha but we need to multiply it for dst.
             // System.out.println("Mult Case");
-            int a, b, alpha, in, fpNorm = (1<<24)/255, pt5 = 1<<23;
-            for (int y=y0; y<=y1; y++) {
-                pixel = srcR.getPixels(x0,y,w,1,pixel);
-                in=bands*w-1;
+            int a;
+            int b;
+            int alpha;
+            int in;
+            int fpNorm = (1 << 24) / 255;
+            int pt5 = 1 << 23;
+            for (int y = y0; y <= y1; y++) {
+                pixel = srcR.getPixels(x0, y, w, 1, pixel);
+                in = bands * w - 1;
                 switch (bands) {
                 case 4:
-                    while(in >= 0) {
+                    while (in >= 0) {
                         a = pixel[in];
                         if (a == 255) {
                             in -= 4;
                         } else {
                             in--;
-                            alpha = fpNorm*a;
-                            pixel[in] = (pixel[in]*alpha+pt5)>>>24; in--;
-                            pixel[in] = (pixel[in]*alpha+pt5)>>>24; in--;
-                            pixel[in] = (pixel[in]*alpha+pt5)>>>24; in--;
+                            alpha = fpNorm * a;
+                            pixel[in] = (pixel[in] * alpha + pt5) >>> 24;
+                            in--;
+                            pixel[in] = (pixel[in] * alpha + pt5) >>> 24;
+                            in--;
+                            pixel[in] = (pixel[in] * alpha + pt5) >>> 24;
+                            in--;
                         }
                     }
                     break;
                 default:
-                    while(in >= 0) {
+                    while (in >= 0) {
                         a = pixel[in];
                         if (a == 255) {
                             in -= bands;
                         } else {
                             in--;
-                            alpha = fpNorm*a;
-                            for (b=0; b<bands-1; b++) {
-                                pixel[in] = (pixel[in]*alpha+pt5)>>>24;
+                            alpha = fpNorm * a;
+                            for (b = 0; b < bands - 1; b++) {
+                                pixel[in] = (pixel[in] * alpha + pt5) >>> 24;
                                 in--;
                             }
                         }
                     }
                 }
-                dstR.setPixels(x0+dx, y+dy, w, 1, pixel);
+                dstR.setPixels(x0 + dx, y + dy, w, 1, pixel);
             }
         } else if (dstAlpha && !dst.isAlphaPremultiplied()) {
             // Src and dest have Alpha but we need to divide it out for dst.
             // System.out.println("Div Case");
-            int a, b, ialpha, in, fpNorm = 0x00FF0000, pt5 = 1<<15;
-            for (int y=y0; y<=y1; y++) {
-                pixel = srcR.getPixels(x0,y,w,1,pixel);
-                in=(bands*w)-1;
+            int a;
+            int b;
+            int ialpha;
+            int in;
+            int fpNorm = 0x00FF0000;
+            int pt5 = 1 << 15;
+            for (int y = y0; y <= y1; y++) {
+                pixel = srcR.getPixels(x0, y, w, 1, pixel);
+                in = (bands * w) - 1;
                 switch(bands) {
                 case 4:
-                    while(in >= 0) {
+                    while (in >= 0) {
                         a = pixel[in];
                         if ((a <= 0) || (a >= 255)) {
                             in -= 4;
                         } else {
                             in--;
-                            ialpha = fpNorm/a;
-                            pixel[in] = (pixel[in]*ialpha+pt5)>>>16; in--;
-                            pixel[in] = (pixel[in]*ialpha+pt5)>>>16; in--;
-                            pixel[in] = (pixel[in]*ialpha+pt5)>>>16; in--;
+                            ialpha = fpNorm / a;
+                            pixel[in] = (pixel[in] * ialpha + pt5) >>> 16;
+                            in--;
+                            pixel[in] = (pixel[in] * ialpha + pt5) >>> 16;
+                            in--;
+                            pixel[in] = (pixel[in] * ialpha + pt5) >>> 16;
+                            in--;
                         }
                     }
                     break;
                 default:
-                    while(in >= 0) {
+                    while (in >= 0) {
                         a = pixel[in];
                         if ((a <= 0) || (a >= 255)) {
                             in -= bands;
                         } else {
                             in--;
-                            ialpha = fpNorm/a;
-                            for (b=0; b<bands-1; b++) {
-                                pixel[in] = (pixel[in]*ialpha+pt5)>>>16;
+                            ialpha = fpNorm / a;
+                            for (b = 0; b < bands - 1; b++) {
+                                pixel[in] = (pixel[in] * ialpha + pt5) >>> 16;
                                 in--;
                             }
                         }
                     }
                 }
-                dstR.setPixels(x0+dx, y+dy, w, 1, pixel);
+                dstR.setPixels(x0 + dx, y + dy, w, 1, pixel);
             }
         } else if (src.isAlphaPremultiplied()) {
-            int [] oPix = new int[bands*w];
+            int [] oPix = new int[bands * w];
             // Src has alpha dest does not so unpremult and store...
             // System.out.println("Remove Alpha, Div Case");
-            int a, b, ialpha, in, out, fpNorm = 0x00FF0000, pt5 = 1<<15;
-            for (int y=y0; y<=y1; y++) {
-                pixel = srcR.getPixels(x0,y,w,1,pixel);
-                in  = (bands+1)*w -1;
-                out = (bands*w)-1;
-                while(in >= 0) {
-                    a = pixel[in]; in--;
+            int a;
+            int b;
+            int ialpha;
+            int in;
+            int out;
+            int fpNorm = 0x00FF0000;
+            int pt5 = 1 << 15;
+            for (int y = y0; y <= y1; y++) {
+                pixel = srcR.getPixels(x0, y, w, 1, pixel);
+                in  = (bands + 1) * w - 1;
+                out = (bands * w) - 1;
+                while (in >= 0) {
+                    a = pixel[in];
+                    in--;
                     if (a > 0) {
                         if (a < 255) {
-                            ialpha = fpNorm/a;
-                            for (b=0; b<bands; b++) {
-                                oPix[out--] = (pixel[in--]*ialpha+pt5)>>>16;
+                            ialpha = fpNorm / a;
+                            for (b = 0; b < bands; b++) {
+                                oPix[out--] = (pixel[in--] * ialpha + pt5) >>> 16;
                             }
                         } else {
-                            for (b=0; b<bands; b++) {
+                            for (b = 0; b < bands; b++) {
                                 oPix[out--] = pixel[in--];
                             }
                         }
                     } else {
                         in -= bands;
-                        for (b=0; b<bands; b++) {
+                        for (b = 0; b < bands; b++) {
                             oPix[out--] = 255;
                         }
                     }
                 }
-                dstR.setPixels(x0+dx, y+dy, w, 1, oPix);
+                dstR.setPixels(x0 + dx, y + dy, w, 1, oPix);
             }
         } else {
             // Src has unpremult alpha, dest does not have alpha,
             // just copy the color channels over.
             Rectangle dstRect = new Rectangle(destP.x, destP.y,
                                               srcRect.width, srcRect.height);
-            for (int b=0; b<bands; b++) {
+            for (int b = 0; b < bands; b++) {
                 copyBand(srcR, srcRect, b,
                          dstR, dstRect, b);
             }
@@ -862,11 +896,12 @@ public final class GraphicsUtil {
 
     public static void copyBand(Raster         src, Rectangle sR, int sBand,
                                 WritableRaster dst, Rectangle dR, int dBand) {
-        int dy = dR.y -sR.y;
-        int dx = dR.x -sR.x;
+        int dy = dR.y - sR.y;
+        int dx = dR.x - sR.x;
         sR = sR.intersection(src.getBounds());
         dR = dR.intersection(dst.getBounds());
-        int width, height;
+        int width;
+        int height;
         if (dR.width  < sR.width) {
             width  = dR.width;
         } else {
@@ -877,24 +912,23 @@ public final class GraphicsUtil {
         } else {
             height = sR.height;
         }
-
-        int x = sR.x+dx;
+        int x = sR.x + dx;
         int [] samples = null;
-        for (int y=sR.y; y< sR.y+height; y++) {
+        for (int y = sR.y; y < sR.y + height; y++) {
             samples = src.getSamples(sR.x, y, width, 1, sBand, samples);
-            dst.setSamples(x, y+dy, width, 1, dBand, samples);
+            dst.setSamples(x, y + dy, width, 1, dBand, samples);
         }
     }
 
     public static boolean is_INT_PACK_Data(SampleModel sm,
                                            boolean requireAlpha) {
         // Check ColorModel is of type DirectColorModel
-        if(!(sm instanceof SinglePixelPackedSampleModel)) {
+        if (!(sm instanceof SinglePixelPackedSampleModel)) {
             return false;
         }
 
         // Check transfer type
-        if(sm.getDataType() != DataBuffer.TYPE_INT) {
+        if (sm.getDataType() != DataBuffer.TYPE_INT) {
             return false;
         }
 
@@ -910,17 +944,17 @@ public final class GraphicsUtil {
             return false;
         }
 
-        if(masks[0] != 0x00ff0000) {
+        if (masks[0] != 0x00ff0000) {
             return false;
         }
-        if(masks[1] != 0x0000ff00) {
+        if (masks[1] != 0x0000ff00) {
             return false;
         }
-        if(masks[2] != 0x000000ff) {
+        if (masks[2] != 0x000000ff) {
             return false;
         }
-        if ((masks.length == 4) &&
-            (masks[3] != 0xff000000)) {
+        if ((masks.length == 4)
+            && (masks[3] != 0xff000000)) {
             return false;
         }
 
@@ -929,12 +963,12 @@ public final class GraphicsUtil {
 
         public static boolean is_BYTE_COMP_Data(SampleModel sm) {
             // Check ColorModel is of type DirectColorModel
-            if(!(sm instanceof ComponentSampleModel)) {
+            if (!(sm instanceof ComponentSampleModel)) {
                 return false;
             }
 
             // Check transfer type
-            if(sm.getDataType() != DataBuffer.TYPE_BYTE) {
+            if (sm.getDataType() != DataBuffer.TYPE_BYTE) {
                 return false;
             }
 
@@ -952,27 +986,27 @@ public final class GraphicsUtil {
         final int scanStride = sppsm.getScanlineStride();
         DataBufferInt db = (DataBufferInt)wr.getDataBuffer();
         final int base
-            = (db.getOffset() +
-               sppsm.getOffset(wr.getMinX()-wr.getSampleModelTranslateX(),
-                               wr.getMinY()-wr.getSampleModelTranslateY()));
+            = (db.getOffset()
+               + sppsm.getOffset(wr.getMinX() - wr.getSampleModelTranslateX(),
+                               wr.getMinY() - wr.getSampleModelTranslateY()));
 
         // Access the pixel data array
         final int[] pixels = db.getBankData()[0];
-        for (int y=0; y<wr.getHeight(); y++) {
-            int sp = base + y*scanStride;
+        for (int y = 0; y < wr.getHeight(); y++) {
+            int sp = base + y * scanStride;
             final int end = sp + width;
             while (sp < end) {
                 int pixel = pixels[sp];
-                int a = pixel>>>24;
-                if (a<=0) {
+                int a = pixel >>> 24;
+                if (a <= 0) {
                     pixels[sp] = 0x00FFFFFF;
-                } else if (a<255) {
-                    int aFP = (0x00FF0000/a);
+                } else if (a < 255) {
+                    int aFP = (0x00FF0000 / a);
                     pixels[sp] =
-                        ((a << 24) |
-                         (((((pixel&0xFF0000)>>16)*aFP)&0xFF0000)    ) |
-                         (((((pixel&0x00FF00)>>8) *aFP)&0xFF0000)>>8 ) |
-                         (((((pixel&0x0000FF))    *aFP)&0xFF0000)>>16));
+                        ((a << 24)
+                         | (((((pixel & 0xFF0000) >> 16) * aFP) & 0xFF0000))
+                         | (((((pixel & 0x00FF00) >> 8) * aFP) & 0xFF0000) >> 8)
+                         | (((((pixel & 0x0000FF))    * aFP) & 0xFF0000) >> 16));
                 }
                 sp++;
             }
@@ -990,22 +1024,22 @@ public final class GraphicsUtil {
         final int scanStride = sppsm.getScanlineStride();
         DataBufferInt db = (DataBufferInt)wr.getDataBuffer();
         final int base
-            = (db.getOffset() +
-               sppsm.getOffset(wr.getMinX()-wr.getSampleModelTranslateX(),
-                               wr.getMinY()-wr.getSampleModelTranslateY()));
+            = (db.getOffset()
+               + sppsm.getOffset(wr.getMinX() - wr.getSampleModelTranslateX(),
+                               wr.getMinY() - wr.getSampleModelTranslateY()));
         // Access the pixel data array
         final int[] pixels = db.getBankData()[0];
-        for (int y=0; y<wr.getHeight(); y++) {
-            int sp = base + y*scanStride;
+        for (int y = 0; y < wr.getHeight(); y++) {
+            int sp = base + y * scanStride;
             final int end = sp + width;
             while (sp < end) {
                 int pixel = pixels[sp];
-                int a = pixel>>>24;
-                if ((a>=0) && (a<255)) {   // this does NOT include a == 255 (0xff) !
-                    pixels[sp] = ((a << 24) |
-                                  ((((pixel&0xFF0000)*a)>>8)&0xFF0000) |
-                                  ((((pixel&0x00FF00)*a)>>8)&0x00FF00) |
-                                  ((((pixel&0x0000FF)*a)>>8)&0x0000FF));
+                int a = pixel >>> 24;
+                if ((a >= 0) && (a < 255)) {   // this does NOT include a == 255 (0xff) !
+                    pixels[sp] = ((a << 24)
+                                  | ((((pixel & 0xFF0000) * a) >> 8) & 0xFF0000)
+                                  | ((((pixel & 0x00FF00) * a) >> 8) & 0x00FF00)
+                                  | ((((pixel & 0x0000FF) * a) >> 8) & 0x0000FF));
                 }
                 sp++;
             }
@@ -1027,32 +1061,32 @@ public final class GraphicsUtil {
 
         DataBufferByte db = (DataBufferByte)wr.getDataBuffer();
         final int base
-            = (db.getOffset() +
-               csm.getOffset(wr.getMinX()-wr.getSampleModelTranslateX(),
-                             wr.getMinY()-wr.getSampleModelTranslateY()));
+            = (db.getOffset()
+               + csm.getOffset(wr.getMinX() - wr.getSampleModelTranslateX(),
+                             wr.getMinY() - wr.getSampleModelTranslateY()));
 
-        int aOff = bandOff[bandOff.length-1];
-        int bands = bandOff.length-1;
+        int aOff = bandOff[bandOff.length - 1];
+        int bands = bandOff.length - 1;
 
         // Access the pixel data array
         final byte[] pixels = db.getBankData()[0];
-        for (int y=0; y<wr.getHeight(); y++) {
-            int sp = base + y*scanStride;
-            final int end = sp + width*pixStride;
+        for (int y = 0; y < wr.getHeight(); y++) {
+            int sp = base + y * scanStride;
+            final int end = sp + width * pixStride;
             while (sp < end) {
-              int a = pixels[sp+aOff]&0xFF;
-              if (a==0) {
+              int a = pixels[sp + aOff] & 0xFF;
+              if (a == 0) {
                 for (int b = 0; b < bands; b++) {
-                    pixels[sp+bandOff[b]] = (byte)0xFF;
+                  pixels[sp + bandOff[b]] = (byte)0xFF;
                 }
-              } else if (a<255) {         // this does NOT include a == 255 (0xff) !
-                int aFP = (0x00FF0000/a);
+              } else if (a < 255) {         // this does NOT include a == 255 (0xff) !
+                int aFP = (0x00FF0000 / a);
                 for (int b = 0; b < bands; b++) {
-                  int i = sp+bandOff[b];
-                  pixels[i] = (byte)(((pixels[i]&0xFF)*aFP)>>>16);
+                  int i = sp + bandOff[b];
+                  pixels[i] = (byte)(((pixels[i] & 0xFF) * aFP) >>> 16);
                 }
               }
-              sp+=pixStride;
+              sp += pixStride;
             }
         }
     }
@@ -1071,28 +1105,28 @@ public final class GraphicsUtil {
 
         DataBufferByte db = (DataBufferByte)wr.getDataBuffer();
         final int base
-            = (db.getOffset() +
-               csm.getOffset(wr.getMinX()-wr.getSampleModelTranslateX(),
-                             wr.getMinY()-wr.getSampleModelTranslateY()));
+            = (db.getOffset()
+               + csm.getOffset(wr.getMinX() - wr.getSampleModelTranslateX(),
+                             wr.getMinY() - wr.getSampleModelTranslateY()));
 
 
-        int aOff = bandOff[bandOff.length-1];
-        int bands = bandOff.length-1;
+        int aOff = bandOff[bandOff.length - 1];
+        int bands = bandOff.length - 1;
 
         // Access the pixel data array
         final byte[] pixels = db.getBankData()[0];
-        for (int y=0; y<wr.getHeight(); y++) {
-            int sp = base + y*scanStride;
-            final int end = sp + width*pixStride;
+        for (int y = 0; y < wr.getHeight(); y++) {
+            int sp = base + y * scanStride;
+            final int end = sp + width * pixStride;
             while (sp < end) {
-              int a = pixels[sp+aOff]&0xFF;
-              if (a!=0xFF) {
+              int a = pixels[sp + aOff] & 0xFF;
+              if (a != 0xFF) {
                 for (int b = 0; b < bands; b++) {
-                  int i = sp+bandOff[b];
-                  pixels[i] = (byte)(((pixels[i]&0xFF)*a)>>8);
+                  int i = sp + bandOff[b];
+                  pixels[i] = (byte)(((pixels[i] & 0xFF) * a) >> 8);
                 }
-            }
-              sp+=pixStride;
+              }
+              sp += pixStride;
             }
         }
     }

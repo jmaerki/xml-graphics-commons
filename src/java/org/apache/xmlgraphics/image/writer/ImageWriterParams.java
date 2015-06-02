@@ -33,13 +33,14 @@ public class ImageWriterParams {
     /** Used for generating exactly one strip for each row */
     public static final int ONE_ROW_PER_STRIP = 1;
 
-    private Integer xResolution = null;
-    private Integer yResolution = null;
+    private Integer xResolution;
+    private Integer yResolution;
     private Float jpegQuality;
     private Boolean jpegForceBaseline;
     private String compressionMethod;
     private ResolutionUnit resolutionUnit = ResolutionUnit.INCH;
     private int rowsPerStrip = ONE_ROW_PER_STRIP;
+    private Endianness endianness = Endianness.DEFAULT;
 
     /**
      * Default constructor.
@@ -99,7 +100,7 @@ public class ImageWriterParams {
      * @param forceBaseline force baseline quantization table
      */
     public void setJPEGQuality(float quality, boolean forceBaseline) {
-        this.jpegQuality = new Float(quality);
+        this.jpegQuality = quality;
         this.jpegForceBaseline = forceBaseline ? Boolean.TRUE : Boolean.FALSE;
     }
 
@@ -176,7 +177,7 @@ public class ImageWriterParams {
      * @param resolution the resolution value
      */
     public void setXResolution(int resolution) {
-        xResolution = Integer.valueOf(resolution);
+        xResolution = resolution;
     }
 
     /**
@@ -191,6 +192,23 @@ public class ImageWriterParams {
      * @param resolution the resolution value
      */
     public void setYResolution(int resolution) {
-        yResolution = Integer.valueOf(resolution);
+        yResolution = resolution;
     }
+
+    /**
+     * Returns the endianness selected for the image.
+     * @return the endianness
+     */
+    public Endianness getEndianness() {
+        return this.endianness;
+    }
+
+    /**
+     * Sets the endianness selected for the image.
+     * @param endianness the endianness
+     */
+    public void setEndianness(Endianness endianness) {
+        this.endianness = endianness;
+    }
+
 }

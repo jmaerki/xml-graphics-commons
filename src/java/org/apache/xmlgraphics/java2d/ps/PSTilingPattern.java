@@ -48,38 +48,38 @@ public class PSTilingPattern {
     /**
      * The name of the pattern (for example: "Pattern1" )
      */
-    protected String patternName = null;
+    protected String patternName;
 
     /**
      * The XUID is an extended unique ID -- an array of integers that provides for
      * distributed, hierarchical management of the space of unique ID numbers
      * (optional)
      */
-    protected List xUID = null;
+    protected List xUID;
 
     /**
      * A PostScript procedure for painting the pattern cell
      */
-    protected StringBuffer paintProc = null;
+    protected StringBuffer paintProc;
 
     /**
      * An array of four numbers in the pattern coordinate system, giving
      * the coordinates of the left, bottom, right, and top edges, respectively, of the
      * pattern cell's bounding box
      */
-    protected Rectangle2D bBox = null;
+    protected Rectangle2D bBox;
 
     /**
      * The desired horizontal spacing between pattern cells, measured in
      * the pattern coordinate system
      */
-    protected double xStep = 0;
+    protected double xStep;
 
     /**
      * The desired vertical spacing between pattern cells, measured in
      * the pattern coordinate system
      */
-    protected double yStep = 0;
+    protected double yStep;
 
     /**
      * A code that determines how the color of the pattern cell is to be
@@ -99,7 +99,7 @@ public class PSTilingPattern {
     /**
      *  A texture is used for filling shapes
      */
-    protected TexturePaint texture = null;
+    protected TexturePaint texture;
 
     /**
      * Constructor for the creation of pattern with defined PaintProc
@@ -392,9 +392,9 @@ public class PSTilingPattern {
             }
 
             // define color image: width height bits/comp matrix
-            //                        datasrc0 � datasrcncomp-1 multi ncomp colorimage
+            //                        datasrc0 datasrcncomp-1 multi ncomp colorimage
             sb.append(width + " " + height + " 8 " + "matrix\n");   // width height bits/comp matrix
-            int [] argb = new int[width * height];                  // datasrc0 � datasrcncomp-1
+            int [] argb = new int[width * height];                  // datasrc0 datasrcncomp-1
             sb.append("{<");
             texture.getImage().getRGB(0, 0, width, height, argb, 0, width);
             int count = 0;
@@ -434,14 +434,14 @@ public class PSTilingPattern {
         return
             0
             ^ patternType
-            ^ ( ( xUID != null ) ? xUID.hashCode() : 0 )
-            ^ ( ( paintProc != null ) ? paintProc.hashCode() : 0 )
-            ^ ( ( bBox != null ) ? bBox.hashCode() : 0 )
-            ^ new Double(xStep).hashCode()
-            ^ new Double(yStep).hashCode()
+            ^ ((xUID != null) ? xUID.hashCode() : 0)
+            ^ ((paintProc != null) ? paintProc.hashCode() : 0)
+            ^ ((bBox != null) ? bBox.hashCode() : 0)
+            ^ Double.valueOf(xStep).hashCode()
+            ^ Double.valueOf(yStep).hashCode()
             ^ paintType
             ^ tilingType
-            ^ ( ( texture != null ) ? texture.hashCode() : 0 );
+            ^ ((texture != null) ? texture.hashCode() : 0);
     }
 
     /**
@@ -452,7 +452,7 @@ public class PSTilingPattern {
         if (pattern == null) {
             return false;
         }
-        if ( !(pattern instanceof PSTilingPattern)) {
+        if (!(pattern instanceof PSTilingPattern)) {
             return false;
         }
         if (this == pattern) {
@@ -466,7 +466,7 @@ public class PSTilingPattern {
 
         TexturePaint patternTexture = patternObj.getTexturePaint();
 
-        if ( ((patternTexture == null) && (texture != null))
+        if (((patternTexture == null) && (texture != null))
              || ((patternTexture != null) && (texture == null))) {
             return false;
         }

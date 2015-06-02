@@ -35,7 +35,7 @@ import ch.jm.util.services.ServiceListener;
  * Registry for {@link ImageWriter} implementations.
  * They are primarily registered through {@link Plugins}.
  */
-public class ImageWriterRegistry {
+public final class ImageWriterRegistry {
 
     private static volatile ImageWriterRegistry instance;
 
@@ -124,7 +124,7 @@ public class ImageWriterRegistry {
             key = key.substring(0, pos);
             value = preferredOrder.get(key);
         }
-        return (value != null) ? value.intValue() : 0;
+        return (value != null) ? value : 0;
     }
 
     /**

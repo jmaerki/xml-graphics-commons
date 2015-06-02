@@ -74,7 +74,7 @@ import org.apache.xmlgraphics.java2d.color.profile.ColorProfileUtil;
 public class ImageLoaderImageIO extends AbstractImageLoader {
 
     /** logger */
-    protected static Log log = LogFactory.getLog(ImageLoaderImageIO.class);
+    protected static final Log log = LogFactory.getLog(ImageLoaderImageIO.class);
 
     private ImageFlavor targetFlavor;
 
@@ -82,7 +82,7 @@ public class ImageLoaderImageIO extends AbstractImageLoader {
 
     private static final String JPEG_METADATA_NODE = "javax_imageio_jpeg_image_1.0";
 
-    private static final Set providersIgnoringICC = new HashSet(); // CSOK: ConstantName
+    private static final Set PROVIDERS_IGNORING_ICC = new HashSet();
 
     /**
      * Main constructor.
@@ -124,15 +124,15 @@ public class ImageLoaderImageIO extends AbstractImageLoader {
                     reader.setInput(imgStream, false, ignoreMetadata);
                     final int pageIndex = ImageUtil.needPageIndexFromURI(info.getOriginalURI());
                     try {
-                        if (ImageFlavor.BUFFERED_IMAGE.equals(this.targetFlavor)) {
+//                        if (ImageFlavor.BUFFERED_IMAGE.equals(this.targetFlavor)) {
                             imageData = reader.read(pageIndex, param);
-                        } else {
-                            imageData = reader.read(pageIndex, param);
+//                        } else {
+//                            imageData = reader.read(pageIndex, param);
                             //imageData = reader.readAsRenderedImage(pageIndex, param);
                             //TODO Reenable the above when proper listeners are implemented
                             //to react to late pixel population (so the stream can be closed
                             //properly).
-                        }
+//                        }
                         if (iiometa == null) {
                             iiometa = reader.getImageMetadata(pageIndex);
                         }
@@ -203,11 +203,16 @@ public class ImageLoaderImageIO extends AbstractImageLoader {
                         imageData = bi;
                         cm = cm2;
                     } catch (IllegalArgumentException iae) {
-                        log.warn("Image " + info.getOriginalURI()
+                        String msg = "Image " + info.getOriginalURI()
                                 + " has an incompatible color profile."
                                 + " The color profile will be ignored."
                                 + "\nColor model of loaded bitmap: " + cm
-                                + "\nColor model of color profile: " + cm2);
+                                + "\nColor model of color profile: " + cm2;
+                        if (info.getCustomObjects().get("warningincustomobject") != null) {
+                            info.getCustomObjects().put("warning", msg);
+                        } else {
+                            log.warn(msg);
+                        }
                     }
                 }
             }
@@ -223,7 +228,7 @@ public class ImageLoaderImageIO extends AbstractImageLoader {
                     child = ImageIOUtil.getChild(dim, "TransparentColor");
                     if (child != null) {
                         String value = child.getAttribute("value");
-                        if (value == null || value.length() == 0) {
+                        if (value.length() == 0) {
                             //ignore
                         } else if (cm.getNumColorComponents() == 1) {
                             int gray = Integer.parseInt(value);
@@ -265,7 +270,7 @@ public class ImageLoaderImageIO extends AbstractImageLoader {
         if (log.isDebugEnabled()) {
             log.debug("Image Provider: " + b.toString());
         }
-        return ImageLoaderImageIO.providersIgnoringICC.contains(b.toString());
+        return ImageLoaderImageIO.PROVIDERS_IGNORING_ICC.contains(b.toString());
     }
 
     /**
@@ -385,9 +390,13 @@ public class ImageLoaderImageIO extends AbstractImageLoader {
 
     static {
         // TODO: This list could be kept in a resource file.
-        providersIgnoringICC
+        PROVIDERS_IGNORING_ICC
                 .add("Standard PNG image reader/Sun Microsystems, Inc./1.0");
-        providersIgnoringICC
+        PROVIDERS_IGNORING_ICC
+                .add("Standard PNG image reader/Oracle Corporation/1.0");
+        PROVIDERS_IGNORING_ICC
                 .add("Standard JPEG Image Reader/Sun Microsystems, Inc./0.5");
+        PROVIDERS_IGNORING_ICC
+                .add("Standard JPEG Image Reader/Oracle Corporation/0.5");
     }
 }

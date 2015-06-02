@@ -42,8 +42,8 @@ import  org.apache.xmlgraphics.image.codec.util.ImageDecodeParam;
  * <code>
  *       byte b;
  *       short s;
- *       s = s & 0xffff;
- *       b = (byte)((s >> 8) & 0xff);
+ *       s = s &amp; 0xffff;
+ *       b = (byte)((s &gt;&gt; 8) &amp; 0xff);
  * </code>
  * If a different algorithm is to be used for the dithering, this class
  * should be subclassed and an appropriate implementation should be
@@ -56,7 +56,7 @@ import  org.apache.xmlgraphics.image.codec.util.ImageDecodeParam;
  * <code>
  *       byte b;
  *       short s;
- *       b = (byte)((s + Short.MIN_VALUE) >> 8);
+ *       b = (byte)((s + Short.MIN_VALUE) &gt;&gt; 8);
  * </code>
  * In order to use a different algorithm for the dithering, this class
  * should be subclassed and the method overridden.
@@ -72,8 +72,9 @@ import  org.apache.xmlgraphics.image.codec.util.ImageDecodeParam;
  */
 public class TIFFDecodeParam implements ImageDecodeParam {
 
-    private boolean decodePaletteAsShorts = false;
-    private Long ifdOffset = null;
+    private static final long serialVersionUID = -2371665950056848358L;
+    private boolean decodePaletteAsShorts;
+    private Long ifdOffset;
     private boolean convertJPEGYCbCrToRGB = true;
 
     /** Constructs a default instance of <code>TIFFDecodeParam</code>. */
@@ -130,7 +131,7 @@ public class TIFFDecodeParam implements ImageDecodeParam {
      * the directory at that offset.
      */
     public void setIFDOffset(long offset) {
-        ifdOffset = new Long(offset);
+        ifdOffset = offset;
     }
 
     /**

@@ -76,6 +76,7 @@ public class TIFFField implements Comparable, Serializable {
 
     /** Flag for 64 bit IEEE doubles. */
     public static final int TIFF_DOUBLE    = 12;
+    private static final long serialVersionUID = 207783128222415437L;
 
     /** The tag number. */
     int tag;
@@ -90,7 +91,7 @@ public class TIFFField implements Comparable, Serializable {
     Object data;
 
     /** The default constructor. */
-    TIFFField() {}
+    TIFFField() { }
 
     /**
      * Constructs a TIFFField with arbitrary data.  The data
@@ -99,7 +100,7 @@ public class TIFFField implements Comparable, Serializable {
      * unsigned datatype, long is used. The mapping between types is
      * as follows:
      *
-     * <table border=1>
+     * <table border=1 summary="TIFF">
      * <tr>
      * <th> TIFF type </th> <th> Java type </th>
      * <tr>
@@ -353,10 +354,10 @@ public class TIFFField implements Comparable, Serializable {
             return (float)((double[])data)[index];
         case TIFF_SRATIONAL:
             int[] ivalue = getAsSRational(index);
-            return (float)((double)ivalue[0]/ivalue[1]);
+            return (float)((double)ivalue[0] / ivalue[1]);
         case TIFF_RATIONAL:
             long[] lvalue = getAsRational(index);
-            return (float)((double)lvalue[0]/lvalue[1]);
+            return (float)((double)lvalue[0] / lvalue[1]);
         default:
             throw new ClassCastException();
         }
@@ -391,10 +392,10 @@ public class TIFFField implements Comparable, Serializable {
             return ((double[])data)[index];
         case TIFF_SRATIONAL:
             int[] ivalue = getAsSRational(index);
-            return (double)ivalue[0]/ivalue[1];
+            return (double)ivalue[0] / ivalue[1];
         case TIFF_RATIONAL:
             long[] lvalue = getAsRational(index);
-            return (double)lvalue[0]/lvalue[1];
+            return (double)lvalue[0] / lvalue[1];
         default:
             throw new ClassCastException();
         }
@@ -444,15 +445,15 @@ public class TIFFField implements Comparable, Serializable {
      *         <code>TIFFField</code>.
      */
     public int compareTo(Object o) {
-        if(o == null) {
+        if (o == null) {
             throw new NullPointerException();
         }
 
         int oTag = ((TIFFField)o).getTag();
 
-        if(tag < oTag) {
+        if (tag < oTag) {
             return -1;
-        } else if(tag > oTag) {
+        } else if (tag > oTag) {
             return 1;
         } else {
             return 0;

@@ -38,12 +38,13 @@ import org.apache.xmlgraphics.image.loader.ImageFlavor;
 import org.apache.xmlgraphics.image.loader.ImageInfo;
 import org.apache.xmlgraphics.image.loader.ImageSessionContext;
 import org.apache.xmlgraphics.image.loader.util.ImageUtil;
+import org.apache.xmlgraphics.io.XmlSourceUtil;
 import org.apache.xmlgraphics.util.MimeConstants;
 
 public class ImageLoaderRawPNG extends AbstractImageLoader {
 
     /** logger */
-    protected static Log log = LogFactory.getLog(ImageLoaderRawPNG.class);
+    protected static final Log log = LogFactory.getLog(ImageLoaderRawPNG.class);
 
     /**
      * Main constructor.
@@ -67,7 +68,7 @@ public class ImageLoaderRawPNG extends AbstractImageLoader {
         Source src = session.needSource(info.getOriginalURI());
         ImageInputStream in = ImageUtil.needImageInputStream(src);
         // Remove streams as we do things with them at some later time.
-        ImageUtil.removeStreams(src);
+        XmlSourceUtil.removeStreams(src);
         SeekableStream seekStream = new ImageInputStreamSeekableStreamAdapter(in);
         PNGFile im = new PNGFile(seekStream);
         ImageRawPNG irpng = im.getImageRawPNG(info);

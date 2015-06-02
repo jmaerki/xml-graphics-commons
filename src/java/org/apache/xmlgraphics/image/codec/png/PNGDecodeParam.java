@@ -78,12 +78,14 @@ import org.apache.xmlgraphics.image.codec.util.PropertyUtil;
  */
 public class PNGDecodeParam implements ImageDecodeParam {
 
+    private static final long serialVersionUID = 3957265194926624623L;
+
     /**
      * Constructs a default instance of <code>PNGDecodeParam</code>.
      */
-    public PNGDecodeParam() {}
+    public PNGDecodeParam() { }
 
-    private boolean suppressAlpha = false;
+    private boolean suppressAlpha;
 
     /**
      * Returns <code>true</code> if alpha (transparency) will
@@ -104,7 +106,7 @@ public class PNGDecodeParam implements ImageDecodeParam {
         this.suppressAlpha = suppressAlpha;
     }
 
-    private boolean expandPalette = false;
+    private boolean expandPalette;
 
     /**
      * Returns true if palette-color images will be expanded to
@@ -128,7 +130,7 @@ public class PNGDecodeParam implements ImageDecodeParam {
         this.expandPalette = expandPalette;
     }
 
-    private boolean output8BitGray = false;
+    private boolean output8BitGray;
 
     /**
      * Returns the current value of the 8-bit gray output parameter.
@@ -208,7 +210,7 @@ public class PNGDecodeParam implements ImageDecodeParam {
      * </pre>
      *
      * where <code>gamma_from_file</code> is the gamma of the file
-     * data, as determined by the <code>gAMA</code>, </code>sRGB</code>,
+     * data, as determined by the <code>gAMA</code>, <code>sRGB</code>,
      * and/or <code>iCCP</code> chunks, and <code>display_exponent</code>
      * is the exponent of the intrinsic transfer curve of the display,
      * generally 2.2.
@@ -261,7 +263,7 @@ public class PNGDecodeParam implements ImageDecodeParam {
      * </pre>
      *
      * where <code>gamma_from_file</code> is the gamma of the file
-     * data, as determined by the <code>gAMA</code>, </code>sRGB</code>,
+     * data, as determined by the <code>gAMA</code>, <code>sRGB</code>,
      * and/or <code>iCCP</code> chunks, and <code>user_exponent</code>
      * is an additional user-supplied parameter.
      *
@@ -285,7 +287,7 @@ public class PNGDecodeParam implements ImageDecodeParam {
         this.displayExponent = displayExponent;
     }
 
-    private boolean expandGrayAlpha = false;
+    private boolean expandGrayAlpha;
 
     /**
      * Returns the current setting of the gray/alpha expansion.
@@ -309,9 +311,9 @@ public class PNGDecodeParam implements ImageDecodeParam {
         this.expandGrayAlpha = expandGrayAlpha;
     }
 
-    private boolean generateEncodeParam = false;
+    private boolean generateEncodeParam;
 
-    private PNGEncodeParam encodeParam = null;
+    private PNGEncodeParam encodeParam;
 
     /**
      * Returns <code>true</code> if an instance of

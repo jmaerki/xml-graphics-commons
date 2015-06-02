@@ -36,6 +36,7 @@ import java.awt.Stroke;
 import java.awt.TexturePaint;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.awt.geom.Line2D;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -43,6 +44,8 @@ import java.awt.image.ImageObserver;
 import java.awt.image.RenderedImage;
 import java.awt.image.renderable.RenderableImage;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.xmlgraphics.java2d.AbstractGraphics2D;
 import org.apache.xmlgraphics.java2d.GraphicContext;
@@ -68,6 +71,8 @@ public class PSGraphics2D extends AbstractGraphics2D {
 
     private static final boolean DEBUG = false;
 
+    protected List<Integer> pathHashCache = new ArrayList<Integer>();
+    protected boolean startCache;
     /**
      * The G2D instance that represents the root instance
      * (used in context with create()/dispose()). Null if this instance is the root instance.
@@ -78,7 +83,7 @@ public class PSGraphics2D extends AbstractGraphics2D {
     protected PSGenerator gen;
 
     /** Disable or enable clipping */
-    protected boolean clippingDisabled = false;
+    protected boolean clippingDisabled;
 
     /** Fallback text handler */
 
@@ -262,7 +267,6 @@ public class PSGraphics2D extends AbstractGraphics2D {
         java.awt.Graphics2D g = buf.createGraphics();
         g.setComposite(AlphaComposite.SrcOver);
         g.setBackground(new Color(1, 1, 1, 0));
-        g.setPaint(new Color(1, 1, 1, 0));
         g.fillRect(0, 0, width, height);
         g.clip(new Rectangle(0, 0, buf.getWidth(), buf.getHeight()));
 
@@ -378,7 +382,7 @@ public class PSGraphics2D extends AbstractGraphics2D {
      * @return the winding rule of the path defining the shape
      * @throws IOException In case of an I/O problem.
      */
-    public int processShape(Shape s) throws IOException {
+    public int processShape(Shape s, boolean cached) throws IOException {
         if (s instanceof Rectangle2D) {
             // Special optimization in case of Rectangle Shape
             Rectangle2D r = (Rectangle2D) s;
@@ -386,54 +390,79 @@ public class PSGraphics2D extends AbstractGraphics2D {
             return PathIterator.WIND_NON_ZERO;
         } else {
             PathIterator iter = s.getPathIterator(IDENTITY_TRANSFORM);
-            processPathIterator(iter);
+            if (cached) {
+                processPathIteratorCached(s);
+            } else {
+                processPathIterator(iter);
+            }
             return iter.getWindingRule();
         }
     }
 
-    /**
-     * Processes a path iterator generating the necessary painting operations.
-     * @param iter PathIterator to process
-     * @throws IOException In case of an I/O problem.
-     */
-    public void processPathIterator(PathIterator iter) throws IOException {
+    protected String processPathIteratorToString(PathIterator iter) throws IOException {
+        StringBuilder cmd = new StringBuilder();
         double[] vals = new double[6];
         while (!iter.isDone()) {
             int type = iter.currentSegment(vals);
             switch (type) {
             case PathIterator.SEG_CUBICTO:
-                gen.writeln(gen.formatDouble(vals[0]) + " "
-                                 + gen.formatDouble(vals[1]) + " "
-                                 + gen.formatDouble(vals[2]) + " "
-                                 + gen.formatDouble(vals[3]) + " "
-                                 + gen.formatDouble(vals[4]) + " "
-                                 + gen.formatDouble(vals[5]) + " "
-                                 + gen.mapCommand("curveto"));
+                cmd.append(gen.formatDouble(vals[0])).append(" ").append(gen.formatDouble(vals[1])).append(" ")
+                        .append(gen.formatDouble(vals[2])).append(" ").append(gen.formatDouble(vals[3])).append(" ")
+                        .append(gen.formatDouble(vals[4])).append(" ").append(gen.formatDouble(vals[5])).append(" ")
+                        .append(gen.mapCommand("curveto")).append("\n");
                 break;
             case PathIterator.SEG_LINETO:
-                gen.writeln(gen.formatDouble(vals[0]) + " "
-                                 + gen.formatDouble(vals[1]) + " "
-                                 + gen.mapCommand("lineto"));
+                cmd.append(gen.formatDouble(vals[0])).append(" ").append(gen.formatDouble(vals[1])).append(" ")
+                        .append(gen.mapCommand("lineto")).append("\n");
                 break;
             case PathIterator.SEG_MOVETO:
-                gen.writeln(gen.formatDouble(vals[0]) + " "
-                                 + gen.formatDouble(vals[1]) + " "
-                                 + gen.mapCommand("moveto"));
+                cmd.append(gen.formatDouble(vals[0])).append(" ").append(gen.formatDouble(vals[1])).append(" ")
+                        .append(gen.mapCommand("moveto")).append("\n");
                 break;
             case PathIterator.SEG_QUADTO:
-                gen.writeln(gen.formatDouble(vals[0]) + " "
-                          + gen.formatDouble(vals[1]) + " "
-                          + gen.formatDouble(vals[2]) + " "
-                          + gen.formatDouble(vals[3]) + " QT");
+                cmd.append(gen.formatDouble(vals[0])).append(" ").append(gen.formatDouble(vals[1])).append(" ")
+                        .append(gen.formatDouble(vals[2])).append(" ").append(gen.formatDouble(vals[3])).append(" QT")
+                        .append("\n");
                 break;
             case PathIterator.SEG_CLOSE:
-                gen.writeln(gen.mapCommand("closepath"));
+                cmd.append(gen.mapCommand("closepath")).append("\n");
                 break;
             default:
                 break;
             }
             iter.next();
         }
+        return cmd.toString().trim();
+    }
+
+    protected void processPathIteratorCached(Shape s) throws IOException {
+        String cmd = processPathIteratorToString(s.getPathIterator(IDENTITY_TRANSFORM));
+        int hash = cmd.hashCode();
+        if (!startCache) {
+            if (pathHashCache.contains(hash)) {
+                startCache = true;
+                pathHashCache.clear();
+            } else {
+                gen.writeln(cmd);
+                pathHashCache.add(hash);
+            }
+        }
+        if (startCache) {
+            if (!pathHashCache.contains(hash)) {
+                gen.writeln("/f" + hash + "{" + cmd + "}def");
+                pathHashCache.add(hash);
+            }
+            gen.writeln("f" + hash);
+        }
+    }
+
+    /**
+     * Processes a path iterator generating the nexessary painting operations.
+     * @param iter PathIterator to process
+     * @throws IOException In case of an I/O problem.
+     */
+    public void processPathIterator(PathIterator iter) throws IOException {
+        gen.writeln(processPathIteratorToString(iter));
     }
 
     /**
@@ -473,7 +502,7 @@ public class PSGraphics2D extends AbstractGraphics2D {
             applyStroke(getStroke());
 
             gen.writeln(gen.mapCommand("newpath"));
-            processShape(s);
+            processShape(s, false);
             doDrawing(false, true, false);
             gen.restoreGraphicsState();
         } catch (IOException ioe) {
@@ -490,6 +519,10 @@ public class PSGraphics2D extends AbstractGraphics2D {
     public boolean shouldBeClipped(Shape clip, Shape s) {
         if (clip == null || s == null) {
             return false;
+        }
+        if (s instanceof Line2D) {
+            //Line shapes don't work with intersections so always clip
+            return true;
         }
         Area as = new Area(s);
         Area imclip = new Area(clip);
@@ -509,7 +542,7 @@ public class PSGraphics2D extends AbstractGraphics2D {
             preparePainting();
             try {
                 gen.writeln(gen.mapCommand("newpath"));
-                processShape(s);
+                processShape(s, false);
                 // clip area
                 gen.writeln(gen.mapCommand("clip"));
             } catch (IOException ioe) {
@@ -772,7 +805,7 @@ public class PSGraphics2D extends AbstractGraphics2D {
             applyPaint(getPaint(), true);
 
             gen.writeln(gen.mapCommand("newpath"));
-            int windingRule = processShape(s);
+            int windingRule = processShape(s, true);
             doDrawing(true, false,
                     windingRule == PathIterator.WIND_EVEN_ODD);
             gen.restoreGraphicsState();

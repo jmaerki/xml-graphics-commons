@@ -28,25 +28,26 @@ import org.apache.xmlgraphics.image.codec.util.PropertyUtil;
 
 class TIFFFaxDecoder {
 
-    private int bitPointer, bytePointer;
+    private int bitPointer;
+    private int bytePointer;
     private byte[] data;
-    private int w, h;
+    private int w;
     private int fillOrder;
 
     // Data structures needed to store changing elements for the previous
     // and the current scanline
-    private int changingElemSize = 0;
+    private int changingElemSize;
     private int[] prevChangingElems;
     private int[] currChangingElems;
 
     // Element at which to start search in getNextChangingElement
-    private int lastChangingElement = 0;
+    private int lastChangingElement;
 
     private int compression = 2;
 
     // Variables set by T4Options
-    private int uncompressedMode = 0;
-    private int fillBits = 0;
+//    private int uncompressedMode = 0;
+    private int fillBits;
     private int oneD;
 
     static int[] table1 = {
@@ -563,7 +564,7 @@ class TIFFFaxDecoder {
     public TIFFFaxDecoder(int fillOrder, int w, int h) {
         this.fillOrder = fillOrder;
         this.w = w;
-        this.h = h;
+//        this.h = h;
 
         this.bitPointer = 0;
         this.bytePointer = 0;
@@ -578,7 +579,7 @@ class TIFFFaxDecoder {
         this.data = compData;
 
         int lineOffset = 0;
-        int scanlineStride = (w + 7)/8;
+        int scanlineStride = (w + 7) / 8;
 
         bitPointer = 0;
         bytePointer = 0;
@@ -591,8 +592,12 @@ class TIFFFaxDecoder {
 
     public void decodeNextScanline(byte[] buffer,
                                    int lineOffset, int bitOffset) {
-        int bits = 0, code = 0, isT = 0;
-        int current, entry, twoBits;
+        int bits = 0;
+        int code = 0;
+        int isT = 0;
+        int current;
+        int entry;
+        int twoBits;
         boolean isWhite = true;
 
         // Initialize starting of the changing elements array
@@ -739,11 +744,16 @@ class TIFFFaxDecoder {
         bitPointer = 0;
         bytePointer = 0;
 
-        int scanlineStride = (w + 7)/8;
+        int scanlineStride = (w + 7) / 8;
 
-        int a0, a1, b1, b2;
+        int a0;
+        int a1;
+        int b1;
+        int b2;
         int[] b = new int[2];
-        int entry, code, bits;
+        int entry;
+        int code;
+        int bits;
         boolean isWhite;
         int currIndex = 0;
         int[] temp;
@@ -755,7 +765,7 @@ class TIFFFaxDecoder {
 
 
         oneD = (int)(tiffT4Options & 0x01);
-        uncompressedMode = (int)((tiffT4Options & 0x02) >> 1);
+//        uncompressedMode = (int)((tiffT4Options & 0x02) >> 1);
         fillBits = (int)((tiffT4Options & 0x04) >> 2);
 
         // The data must start with an EOL code
@@ -890,10 +900,15 @@ class TIFFFaxDecoder {
         bitPointer = 0;
         bytePointer = 0;
 
-        int scanlineStride = (w + 7)/8;
+        int scanlineStride = (w + 7) / 8;
 
-        int a0, a1, b1, b2;
-        int entry, code, bits;
+        int a0;
+        int a1;
+        int b1;
+        int b2;
+        int entry;
+        int code;
+        int bits;
         boolean isWhite;
         int currIndex;
         int[] temp;
@@ -904,7 +919,7 @@ class TIFFFaxDecoder {
         // uncompressedMode - have written some code for this, but this
         // has not been tested due to lack of test images using this optional
 
-        uncompressedMode = (int)((tiffT6Options & 0x02) >> 1);
+//        uncompressedMode = (int)((tiffT6Options & 0x02) >> 1);
 
         // Local cached reference
         int[] cce = currChangingElems;
@@ -1093,7 +1108,7 @@ class TIFFFaxDecoder {
     private void setToBlack(byte[] buffer,
                             int lineOffset, int bitOffset,
                             int numBits) {
-        int bitNum = 8*lineOffset + bitOffset;
+        int bitNum = 8 * lineOffset + bitOffset;
         int lastBit = bitNum + numBits;
 
         int byteNum = bitNum >> 3;
@@ -1128,7 +1143,12 @@ class TIFFFaxDecoder {
 
     // Returns run length
     private int decodeWhiteCodeWord() {
-        int current, entry, bits, isT, twoBits, code = -1;
+        int current;
+        int entry;
+        int bits;
+        int isT;
+        int twoBits;
+        int code = -1;
         int runLength = 0;
         boolean isWhite = true;
 
@@ -1170,7 +1190,11 @@ class TIFFFaxDecoder {
 
     // Returns run length
     private int decodeBlackCodeWord() {
-        int current, entry, bits, isT, code = -1;
+        int current;
+        int entry;
+        int bits;
+        int isT;
+        int code = -1;
         int runLength = 0;
         boolean isWhite = false;
 
@@ -1179,7 +1203,7 @@ class TIFFFaxDecoder {
             entry = initBlack[current];
 
             // Get the 3 fields from the entry
-            isT = entry & 0x0001;
+//            isT = entry & 0x0001;
             bits = (entry >>> 1) & 0x000f;
             code = (entry >>> 5) & 0x07ff;
 
@@ -1313,7 +1337,9 @@ class TIFFFaxDecoder {
     }
 
     private int nextNBits(int bitsToGet) {
-        byte b, next, next2next;
+        byte b;
+        byte next;
+        byte next2next;
         int l = data.length - 1;
         int bp = this.bytePointer;
 
@@ -1363,8 +1389,8 @@ class TIFFFaxDecoder {
         int i3 = 0;
         if (bitsFromNext2NextByte != 0) {
             i2 <<= bitsFromNext2NextByte;
-            i3 = (next2next & table2[bitsFromNext2NextByte]) >>>
-                (8 - bitsFromNext2NextByte);
+            i3 = (next2next & table2[bitsFromNext2NextByte])
+                >>> (8 - bitsFromNext2NextByte);
             i2 |= i3;
             bytePointer++;
             bitPointer = bitsFromNext2NextByte;
@@ -1382,7 +1408,8 @@ class TIFFFaxDecoder {
     }
 
     private int nextLesserThan8Bits(int bitsToGet) {
-        byte b, next;
+        byte b;
+        byte next;
         int l = data.length - 1;
         int bp = this.bytePointer;
 
@@ -1408,7 +1435,8 @@ class TIFFFaxDecoder {
         int bitsFromNextByte = bitsToGet - bitsLeft;
 
         int shift = bitsLeft - bitsToGet;
-        int i1, i2;
+        int i1;
+        int i2;
         if (shift >= 0) {
             i1 = (b & table1[bitsLeft]) >>> shift;
             bitPointer += bitsToGet;

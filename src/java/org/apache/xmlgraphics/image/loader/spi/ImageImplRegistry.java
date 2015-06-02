@@ -44,7 +44,7 @@ import ch.jm.util.services.ServiceListener;
 public class ImageImplRegistry {
 
     /** logger */
-    protected static Log log = LogFactory.getLog(ImageImplRegistry.class);
+    protected static final Log log = LogFactory.getLog(ImageImplRegistry.class);
 
     /** Infinite penalty value which shall force any implementation to become ineligible. */
     public static final int INFINITE_PENALTY = Integer.MAX_VALUE;
@@ -73,7 +73,7 @@ public class ImageImplRegistry {
     //Note: String as key chosen to avoid possible class-unloading leaks
 
     /** Singleton instance */
-    private static ImageImplRegistry defaultInstance;
+    private static ImageImplRegistry defaultInstance = new ImageImplRegistry();
 
     /**
      * Main constructor. This constructor allows to disable plug-in discovery for testing purposes.
@@ -89,7 +89,6 @@ public class ImageImplRegistry {
 
     /**
      * Main constructor.
-     * @see #getDefaultInstance()
      */
     public ImageImplRegistry() {
         this(true);
@@ -100,9 +99,6 @@ public class ImageImplRegistry {
      * @return the default instance
      */
     public static ImageImplRegistry getDefaultInstance() {
-        if (defaultInstance == null) {
-            defaultInstance = new ImageImplRegistry();
-        }
         return defaultInstance;
     }
 
@@ -315,7 +311,7 @@ public class ImageImplRegistry {
 
     /**
      * Returns the Collection of registered ImageConverter instances.
-     * @return a Collection<ImageConverter>
+     * @return a Collection&lt;ImageConverter&gt;
      */
     public Collection<ImageConverter> getImageConverters() {
         return Collections.unmodifiableList(this.converters);
@@ -452,8 +448,8 @@ public class ImageImplRegistry {
             p1 += getAdditionalPenalty(l1.getClass().getName()).getValue();
 
             ImageLoader l2 = f2.newImageLoader(targetFlavor);
-            long p2 = l2.getUsagePenalty();
-            p2 = getAdditionalPenalty(l2.getClass().getName()).getValue();
+//            long p2 = l2.getUsagePenalty();
+            long p2 = getAdditionalPenalty(l2.getClass().getName()).getValue();
 
             //Lowest penalty first
             return Penalty.truncate(p1 - p2);
@@ -480,7 +476,7 @@ public class ImageImplRegistry {
                 return factories.toArray(new ImageLoaderFactory[factoryCount]);
             }
         }
-        return null;
+        return new ImageLoaderFactory[0];
     }
 
     /**

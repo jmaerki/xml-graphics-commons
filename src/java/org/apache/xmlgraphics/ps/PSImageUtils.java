@@ -19,18 +19,21 @@
 
 package org.apache.xmlgraphics.ps;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.color.ColorSpace;
 import java.awt.geom.Dimension2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.ColorModel;
 import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
 import java.awt.image.IndexColorModel;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 import org.apache.commons.io.IOUtils;
 
@@ -141,6 +144,11 @@ public class PSImageUtils {
         gen.restoreGraphicsState();
     }
 
+    public static void writeImage(ImageEncoder encoder, Dimension imgDim, String imgDescription,
+                                  Rectangle2D targetRect, ColorModel colorModel, PSGenerator gen) throws IOException {
+        writeImage(encoder, imgDim, imgDescription, targetRect, colorModel, gen, null);
+    }
+
     /**
      * Writes a bitmap image to the PostScript stream.
      * @param encoder the image encoder
@@ -152,7 +160,7 @@ public class PSImageUtils {
      * @throws IOException In case of an I/O exception
      */
     public static void writeImage(ImageEncoder encoder, Dimension imgDim, String imgDescription,
-            Rectangle2D targetRect, ColorModel colorModel, PSGenerator gen)
+            Rectangle2D targetRect, ColorModel colorModel, PSGenerator gen, RenderedImage ri)
             throws IOException {
 
         gen.saveGraphicsState();
@@ -178,6 +186,76 @@ public class PSImageUtils {
         imageDict.put("/DataSource", "Data");
 
         populateImageDictionary(imgDim, colorModel, imageDict);
+
+        if (ri != null) {
+            DataBuffer buffer = ri.getData().getDataBuffer();
+            if (!(buffer instanceof DataBufferByte)) {
+                imageDict.put("/BitsPerComponent", 8);
+            }
+        }
+        writeImageCommand(imageDict, colorModel, gen);
+
+        /*
+         * the following two lines could be enabled if something still goes wrong
+         * gen.write("Data closefile");
+         * gen.write("RawData flushfile");
+         */
+        gen.writeln("} stopped {handleerror} if");
+        gen.writeln("  RawData flushfile");
+        gen.writeln("} exec");
+
+        compressAndWriteBitmap(encoder, gen);
+
+        gen.newLine();
+        gen.commentln("%AXGEndBitmap");
+        gen.restoreGraphicsState();
+    }
+
+    /**
+     * Writes a bitmap image to the PostScript stream.
+     * @param encoder the image encoder
+     * @param imgDim the dimensions of the image
+     * @param imgDescription the name of the image
+     * @param targetRect the target rectangle to place the image in
+     * @param colorModel the color model of the image
+     * @param gen the PostScript generator
+     * @throws IOException In case of an I/O exception
+     */
+    public static void writeImage(ImageEncoder encoder, Dimension imgDim, String imgDescription,
+            Rectangle2D targetRect, ColorModel colorModel, PSGenerator gen, RenderedImage ri,
+            Color maskColor)
+            throws IOException {
+
+        gen.saveGraphicsState();
+        translateAndScale(gen, null, targetRect);
+        gen.commentln("%AXGBeginBitmap: " + imgDescription);
+        gen.writeln("{{");
+
+        String implicitFilter = encoder.getImplicitFilter();
+        if (implicitFilter != null) {
+            gen.writeln("/RawData currentfile /ASCII85Decode filter def");
+            gen.writeln("/Data RawData " + implicitFilter + " filter def");
+        } else {
+            if (gen.getPSLevel() >= 3) {
+                gen.writeln("/RawData currentfile /ASCII85Decode filter def");
+                gen.writeln("/Data RawData /FlateDecode filter def");
+            } else {
+                gen.writeln("/RawData currentfile /ASCII85Decode filter def");
+                gen.writeln("/Data RawData /RunLengthDecode filter def");
+            }
+        }
+
+        PSDictionary imageDict = new PSDictionary();
+        imageDict.put("/DataSource", "Data");
+
+        populateImageDictionary(imgDim, colorModel, imageDict, maskColor);
+
+        if (ri != null) {
+            DataBuffer buffer = ri.getData().getDataBuffer();
+            if (!(buffer instanceof DataBufferByte)) {
+                imageDict.put("/BitsPerComponent", 8);
+            }
+        }
         writeImageCommand(imageDict, colorModel, gen);
 
         /*
@@ -198,9 +276,25 @@ public class PSImageUtils {
 
     private static ColorModel populateImageDictionary(Dimension imgDim, ColorModel colorModel,
             PSDictionary imageDict) {
+        imageDict.put("/ImageType", "1");
+        colorModel = writeImageDictionary(imgDim, imageDict, colorModel);
+        return colorModel;
+    }
+
+    private static ColorModel populateImageDictionary(Dimension imgDim, ColorModel colorModel,
+            PSDictionary imageDict, Color maskColor) {
+        imageDict.put("/ImageType", "4");
+
+        colorModel = writeImageDictionary(imgDim, imageDict, colorModel);
+        imageDict.put("/MaskColor", String.format("[ %d %d %d ]", maskColor.getRed(),
+                maskColor.getGreen(), maskColor.getBlue()));
+        return colorModel;
+    }
+
+    private static ColorModel writeImageDictionary(Dimension imgDim, PSDictionary imageDict,
+            ColorModel colorModel) {
         String w = Integer.toString(imgDim.width);
         String h = Integer.toString(imgDim.height);
-        imageDict.put("/ImageType", "1");
         imageDict.put("/Width", w);
         imageDict.put("/Height", h);
 
@@ -255,32 +349,59 @@ public class PSImageUtils {
         if ((cm instanceof IndexColorModel)) {
             ColorSpace cs = cm.getColorSpace();
             IndexColorModel im = (IndexColorModel)cm;
-            gen.write("[/Indexed " + getColorSpaceName(cs));
+            boolean isDeviceGray;
             int c = im.getMapSize();
+            int[] palette = new int[c];
+            im.getRGBs(palette);
+            byte[] reds = new byte[c];
+            byte[] greens = new byte[c];
+            byte[] blues = new byte[c];
+            im.getReds(reds);
+            im.getGreens(greens);
+            im.getBlues(blues);
             int hival = c - 1;
             if (hival > 4095) {
                 throw new UnsupportedOperationException("hival must not go beyond 4095");
             }
+            isDeviceGray = Arrays.equals(reds, blues) && Arrays.equals(blues, greens);
+            if (isDeviceGray) {
+                gen.write("[/Indexed " + "/DeviceGray");
+            } else {
+                gen.write("[/Indexed " + getColorSpaceName(cs));
+            }
             gen.writeln(" " + Integer.toString(hival));
             gen.write("  <");
-            int[] palette = new int[c];
-            im.getRGBs(palette);
-            for (int i = 0; i < c; i++) {
-                if (i > 0) {
-                    if ((i % 8) == 0) {
-                        gen.newLine();
-                        gen.write("   ");
-                    } else {
-                        gen.write(" ");
+            if (isDeviceGray) {
+                gen.write(toHexString(blues));
+            } else {
+                for (int i = 0; i < c; i++) {
+                    if (i > 0) {
+                        if ((i % 8) == 0) {
+                            gen.newLine();
+                            gen.write("   ");
+                        } else {
+                            gen.write(" ");
+                        }
                     }
+                    gen.write(rgb2Hex(palette[i]));
                 }
-                gen.write(rgb2Hex(palette[i]));
             }
             gen.writeln(">");
             gen.writeln("] setcolorspace");
         } else {
             gen.writeln(getColorSpaceName(cm.getColorSpace()) + " setcolorspace");
         }
+    }
+
+    static String toHexString(byte[] color) {
+        char[] hexChars = new char[color.length * 2];
+        int x;
+        for (int i = 0; i < color.length; i++) {
+            x = color[i] & 0xFF;
+            hexChars[i * 2] = HEX[x >>> 4];
+            hexChars[i * 2 + 1] = HEX[x & 0x0F];
+        }
+        return new String(hexChars);
     }
 
     static void writeImageCommand(RenderedImage img,
@@ -351,7 +472,7 @@ public class PSImageUtils {
         ImageEncodingHelper helper = new ImageEncodingHelper(img);
         ColorModel cm = helper.getEncodedColorModel();
 
-        writeImage(encoder, imgDim, imgDescription, targetRect, cm, gen);
+        writeImage(encoder, imgDim, imgDescription, targetRect, cm, gen, img);
     }
 
     /**

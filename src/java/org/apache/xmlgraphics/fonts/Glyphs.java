@@ -46,6 +46,9 @@ public final class Glyphs {
 
     /**
      * Glyph names for Mac encoding
+     * @deprecated That array was supposed to represent the standard Macintosh ordering
+     *      of glyphs in a TrueType font (it does NOT correspond to the MacRoman encoding).
+     *      In addition some entries are incorrect.
      */
     @Deprecated
     public static final String[] MAC_GLYPH_NAMES = {
@@ -656,10 +659,14 @@ public final class Glyphs {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(in, "US-ASCII"));
             String line;
-            while ((line = reader.readLine()) != null) {
-                if (!line.startsWith("#")) {
-                    lines.add(line);
+            try {
+                while ((line = reader.readLine()) != null) {
+                    if (!line.startsWith("#")) {
+                        lines.add(line);
+                    }
                 }
+            } finally {
+                reader.close();
             }
         } catch (UnsupportedEncodingException uee) {
             throw new RuntimeException("Incompatible JVM! US-ASCII encoding is not supported."

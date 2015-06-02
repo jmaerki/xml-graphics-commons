@@ -348,7 +348,7 @@ public class PSGenerator implements PSCommandMap {
     }
 
     /**
-     * Converts a <real> value for use in DSC comments.
+     * Converts a &lt;real&gt; value for use in DSC comments.
      * @param value the value to convert
      * @return String The resulting String
      */
@@ -440,7 +440,7 @@ public class PSGenerator implements PSCommandMap {
                 } else if (params[i] == DSCConstants.ATEND) {
                     tempBuffer.append(DSCConstants.ATEND);
                 } else if (params[i] instanceof Double) {
-                    tempBuffer.append(formatDouble(((Double)params[i]).doubleValue()));
+                    tempBuffer.append(formatDouble((Double) params[i]));
                 } else if (params[i] instanceof Number) {
                     tempBuffer.append(params[i].toString());
                 } else if (params[i] instanceof Date) {
@@ -863,7 +863,7 @@ public class PSGenerator implements PSCommandMap {
      * Returns the PSResource instance corresponding to the CIDInit ProcSet
      * resource.
      *
-     * @return the <q>ProcSet CIDInit</q> resource
+     * @return the ProcSet CIDInit resource
      */
     public PSResource getProcsetCIDInitResource() {
         if (procsetCIDInitResource == null) {

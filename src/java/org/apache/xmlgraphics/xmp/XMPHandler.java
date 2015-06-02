@@ -82,14 +82,14 @@ public class XMPHandler extends DefaultHandler {
         }
     }
 
-    private XMPComplexValue getCurrentComplexValue() {
-        Object obj = this.contextStack.peek();
-        if (obj instanceof XMPComplexValue) {
-            return (XMPComplexValue)obj;
-        } else {
-            return null;
-        }
-    }
+//    private XMPComplexValue getCurrentComplexValue() {
+//        Object obj = this.contextStack.peek();
+//        if (obj instanceof XMPComplexValue) {
+//            return (XMPComplexValue)obj;
+//        } else {
+//            return null;
+//        }
+//    }
 
     private XMPStructure getCurrentStructure() {
         Object obj = this.contextStack.peek();
@@ -229,7 +229,7 @@ public class XMPHandler extends DefaultHandler {
                     } else {
                         String res = atts.getValue(XMPConstants.RDF_NAMESPACE,
                                 "resource");
-                        if ( res != null ) {
+                        if (res != null) {
                             try {
                                 URI resource = new URI(res);
                                 getCurrentArray(true).add(resource);

@@ -30,6 +30,7 @@ import java.awt.image.WritableRaster;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Vector;
 
@@ -68,24 +69,24 @@ public abstract class SimpleRenderedImage implements RenderedImage {
     protected int tileHeight;
 
     /** The X coordinate of the upper-left pixel of tile (0, 0). */
-    protected int tileGridXOffset = 0;
+    protected int tileGridXOffset;
 
     /** The Y coordinate of the upper-left pixel of tile (0, 0). */
-    protected int tileGridYOffset = 0;
+    protected int tileGridYOffset;
 
     /** The image's SampleModel. */
-    protected SampleModel sampleModel = null;
+    protected SampleModel sampleModel;
 
     /** The image's ColorModel. */
-    protected ColorModel colorModel = null;
+    protected ColorModel colorModel;
 
     /** The image's sources, stored in a Vector. */
-    protected List sources = new ArrayList();
+//    protected List sources = new ArrayList();
 
     /** A Hashtable containing the image properties. */
     protected Map properties = new HashMap();
 
-    public SimpleRenderedImage() {}
+    public SimpleRenderedImage() { }
 
     /** Returns the X coordinate of the leftmost column of the image. */
     public int getMinX() {
@@ -233,7 +234,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
      * <code>Object</code>, or the value <code>null</code>
      */
     public Object getProperty(String name) {
-        name = name.toLowerCase();
+        name = name.toLowerCase(Locale.getDefault());
         return properties.get(name);
     }
 
@@ -265,11 +266,11 @@ public abstract class SimpleRenderedImage implements RenderedImage {
      */
     public String[] getPropertyNames(String prefix) {
         String[] propertyNames = getPropertyNames();
-        if (propertyNames == null) {
-            return null;
-        }
+//        if (propertyNames == null) {
+//            return null;
+//        }
 
-        prefix = prefix.toLowerCase();
+        prefix = prefix.toLowerCase(Locale.getDefault());
 
         List names = new ArrayList();
         for (int i = 0; i < propertyNames.length; i++) {
@@ -300,7 +301,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
         if (x < 0) {
             x += 1 - tileWidth; // Force round to -infinity
         }
-        return x/tileWidth;
+        return x / tileWidth;
     }
 
     /**
@@ -313,7 +314,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
         if (y < 0) {
             y += 1 - tileHeight; // Force round to -infinity
         }
-        return y/tileHeight;
+        return y / tileHeight;
     }
 
     /**
@@ -346,7 +347,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
      * by its X offset and tile width.
      */
     public static int tileXToX(int tx, int tileGridXOffset, int tileWidth) {
-        return tx*tileWidth + tileGridXOffset;
+        return tx * tileWidth + tileGridXOffset;
     }
 
     /**
@@ -355,7 +356,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
      * specified by its Y offset and tile height.
      */
     public static int tileYToY(int ty, int tileGridYOffset, int tileHeight) {
-        return ty*tileHeight + tileGridYOffset;
+        return ty * tileHeight + tileGridYOffset;
     }
 
     /**
@@ -367,7 +368,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
      * @return the X coordinate of the tile's upper left pixel.
      */
     public int tileXToX(int tx) {
-        return tx*tileWidth + tileGridXOffset;
+        return tx * tileWidth + tileGridXOffset;
     }
 
     /**
@@ -379,7 +380,7 @@ public abstract class SimpleRenderedImage implements RenderedImage {
      * @return the Y coordinate of the tile's upper left pixel.
      */
     public int tileYToY(int ty) {
-        return ty*tileHeight + tileGridYOffset;
+        return ty * tileHeight + tileGridYOffset;
     }
 
     public Vector getSources() {

@@ -43,7 +43,7 @@ import org.apache.xmlgraphics.io.XmlSourceUtil;
 public class ImageManager {
 
     /** logger */
-    protected static Log log = LogFactory.getLog(ImageManager.class);
+    protected static final Log log = LogFactory.getLog(ImageManager.class);
 
     /** Holds all registered interface implementations for the image package */
     private ImageImplRegistry registry;
@@ -311,6 +311,18 @@ public class ImageManager {
     public Image getImage(ImageInfo info, ImageFlavor[] flavors, ImageSessionContext session)
             throws ImageException, IOException {
         return getImage(info, flavors, ImageUtil.getDefaultHints(session), session);
+    }
+
+    /**
+     * Closes the resources associated to the given image. This method should be
+     * used only when none of the {@code getImage} methods is called by the
+     * client application.
+     *
+     * @param uri the URI of the image
+     * @param session the session context that was used to resolve the URI
+     */
+    public void closeImage(String uri, ImageSessionContext session) {
+        XmlSourceUtil.closeQuietly(session.getSource(uri));
     }
 
     /**

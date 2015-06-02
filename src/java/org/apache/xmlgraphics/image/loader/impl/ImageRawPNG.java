@@ -40,18 +40,20 @@ public class ImageRawPNG extends ImageRawStream {
     private int redTransparentAlpha;
     private int greenTransparentAlpha;
     private int blueTransparentAlpha;
+    private int renderingIntent = -1;
 
     /**
      * Main constructor.
      * @param info the image info object
      * @param in the ImageInputStream with the raw content
-     * @param colorSpace the color space
+     * @param colorModel the color model
+     * @param bitDepth the bit depth
      * @param iccProfile an ICC color profile or null if no profile is associated
      */
-    public ImageRawPNG(ImageInfo info, InputStream in, ColorModel cm, int bitDepth, ICC_Profile iccProfile) {
+    public ImageRawPNG(ImageInfo info, InputStream in, ColorModel colorModel, int bitDepth, ICC_Profile iccProfile) {
         super(info, ImageFlavor.RAW_PNG, in);
         this.iccProfile = iccProfile;
-        this.cm = cm;
+        this.cm = colorModel;
         this.bitDepth = bitDepth;
     }
 
@@ -139,6 +141,22 @@ public class ImageRawPNG extends ImageRawStream {
             color = new Color(this.grayTransparentAlpha, 0, 0);
         }
         return color;
+    }
+
+    /**
+     * Used to set the rendering intent when the color space is sRGB.
+     * @param intent the rendering intent of the sRGB color space
+     */
+    public void setRenderingIntent(int intent) {
+        renderingIntent = intent;
+    }
+
+    /**
+     * Returns the rendering intent of the sRGB color space.
+     * @return the rendering intent
+     */
+    public int getRenderingIntent() {
+      return this.renderingIntent;
     }
 
 }
