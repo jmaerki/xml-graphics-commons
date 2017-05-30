@@ -23,7 +23,6 @@
   <property file="${basedir}/build-local.properties"/>
   <property file="${basedir}/build.properties"/>
 
-  <property name="Name" value="Apache XML Graphics Commons"/>
   <property name="ProjectName" value="Apache XML Graphics Commons"/>
   <property name="name" value="org.apache.xmlgraphics.commons"/>
   <property name="year" value="1999-2015"/>
