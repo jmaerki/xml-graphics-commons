@@ -20,16 +20,14 @@
 package org.apache.xmlgraphics.xmp;
 
 import java.net.URI;
-
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.xmlgraphics.util.QName;
+import org.apache.xmlgraphics.util.XMLizable;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
-
-import org.apache.xmlgraphics.util.QName;
-import org.apache.xmlgraphics.util.XMLizable;
 
 /**
  * This class is the base class for all XMP properties.
@@ -40,6 +38,16 @@ public class XMPProperty implements XMLizable {
     private Object value;
     private String xmllang;
     private Map qualifiers;
+
+    /**
+     * Creates a new XMP property.
+     * @param namespace the property namespace
+     * @param name the name of the property
+     * @param value the value for the property
+     */
+    public XMPProperty(String namespace, String name, Object value) {
+        this(new QName(namespace, name), value);
+    }
 
     /**
      * Creates a new XMP property.
@@ -211,6 +219,7 @@ public class XMPProperty implements XMLizable {
     }
 
     /** @see java.lang.Object#toString() */
+    @Override
     public String toString() {
         StringBuffer sb = new StringBuffer("XMP Property ");
         sb.append(getName()).append(": ");

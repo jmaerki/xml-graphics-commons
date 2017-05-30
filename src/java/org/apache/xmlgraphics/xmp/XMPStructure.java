@@ -22,18 +22,17 @@ package org.apache.xmlgraphics.xmp;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.xmlgraphics.util.QName;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
-
-import org.apache.xmlgraphics.util.QName;
 
 /**
  * Represents an XMP structure as defined by the XMP specification.
  */
 public class XMPStructure extends XMPComplexValue implements PropertyAccess {
 
-    private Map properties = new java.util.HashMap();
+    private Map<QName, XMPProperty> properties = new java.util.HashMap<QName, XMPProperty>();
 
     /**
      * Main constructor
@@ -42,6 +41,7 @@ public class XMPStructure extends XMPComplexValue implements PropertyAccess {
     }
 
     /** {@inheritDoc} */
+    @Override
     public Object getSimpleValue() {
         return null;
     }
@@ -63,13 +63,13 @@ public class XMPStructure extends XMPComplexValue implements PropertyAccess {
 
     /** {@inheritDoc} */
     public XMPProperty getProperty(QName name) {
-        XMPProperty prop = (XMPProperty)properties.get(name);
+        XMPProperty prop = properties.get(name);
         return prop;
     }
 
     /** {@inheritDoc} */
     public XMPProperty removeProperty(QName name) {
-        return (XMPProperty)properties.remove(name);
+        return properties.remove(name);
     }
 
     /** {@inheritDoc} */
@@ -78,7 +78,7 @@ public class XMPStructure extends XMPComplexValue implements PropertyAccess {
     }
 
     /** {@inheritDoc} */
-    public Iterator iterator() {
+    public Iterator<QName> iterator() {
         return this.properties.keySet().iterator();
     }
 
@@ -88,9 +88,9 @@ public class XMPStructure extends XMPComplexValue implements PropertyAccess {
         atts.clear();
         handler.startElement(XMPConstants.RDF_NAMESPACE, "RDF", "rdf:Description", atts);
 
-        Iterator props = properties.values().iterator();
+        Iterator<XMPProperty> props = properties.values().iterator();
         while (props.hasNext()) {
-            XMPProperty prop = (XMPProperty)props.next();
+            XMPProperty prop = props.next();
             //if (prop.getName().getNamespaceURI().equals(ns)) {
                 prop.toSAX(handler);
             //}
@@ -99,6 +99,7 @@ public class XMPStructure extends XMPComplexValue implements PropertyAccess {
     }
 
     /** {@inheritDoc} */
+    @Override
     public String toString() {
         return "XMP structure: " + getPropertyCount();
     }

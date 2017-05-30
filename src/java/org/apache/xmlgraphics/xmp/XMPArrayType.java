@@ -22,11 +22,13 @@ package org.apache.xmlgraphics.xmp;
 /** Enum class for XMP array types. */
 public final class XMPArrayType {
 
-    /** the unordered array */
+    /** not a container type. */
+    public static final XMPArrayType NONE = null;
+    /** the unordered array. */
     public static final XMPArrayType BAG = new XMPArrayType("Bag");
-    /** the ordered array */
+    /** the ordered array. */
     public static final XMPArrayType SEQ = new XMPArrayType("Seq");
-    /** the alternative array */
+    /** the alternative array. */
     public static final XMPArrayType ALT = new XMPArrayType("Alt");
 
     private String name;
@@ -45,6 +47,7 @@ public final class XMPArrayType {
     }
 
     /** @see java.lang.Object#toString() */
+    @Override
     public String toString() {
         return "rdf:" + name;
     }

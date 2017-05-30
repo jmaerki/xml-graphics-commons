@@ -72,6 +72,6 @@ public interface PropertyAccess {
      * Returns an Iterator over all properties in this structured property.
      * @return an Iterator over all properties
      */
-    Iterator iterator();
+    Iterator<QName> iterator();
 
 }

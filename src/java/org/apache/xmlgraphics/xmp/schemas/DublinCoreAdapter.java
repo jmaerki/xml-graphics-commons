@@ -22,6 +22,7 @@ package org.apache.xmlgraphics.xmp.schemas;
 import java.util.Date;
 
 import org.apache.xmlgraphics.xmp.Metadata;
+import org.apache.xmlgraphics.xmp.XMPArrayType;
 import org.apache.xmlgraphics.xmp.XMPSchemaAdapter;
 import org.apache.xmlgraphics.xmp.XMPSchemaRegistry;
 
@@ -33,21 +34,21 @@ import org.apache.xmlgraphics.xmp.XMPSchemaRegistry;
  */
 public class DublinCoreAdapter extends XMPSchemaAdapter {
 
-    private static final String CONTRIBUTOR = "contributor";
-    private static final String COVERAGE = "coverage";
-    private static final String CREATOR = "creator";
-    private static final String DATE = "date";
-    private static final String DESCRIPTION = "description";
-    private static final String FORMAT = "format";
-    private static final String IDENTIFIER = "identifier";
-    private static final String LANGUAGE = "language";
-    private static final String PUBLISHER = "publisher";
-    private static final String RELATION = "relation";
-    private static final String RIGHTS = "rights";
-    private static final String SOURCE = "source";
-    private static final String SUBJECT = "subject";
-    private static final String TITLE = "title";
-    private static final String TYPE = "type";
+    static final String CONTRIBUTOR = "contributor";
+    static final String COVERAGE = "coverage";
+    static final String CREATOR = "creator";
+    static final String DATE = "date";
+    static final String DESCRIPTION = "description";
+    static final String FORMAT = "format";
+    static final String IDENTIFIER = "identifier";
+    static final String LANGUAGE = "language";
+    static final String PUBLISHER = "publisher";
+    static final String RELATION = "relation";
+    static final String RIGHTS = "rights";
+    static final String SOURCE = "source";
+    static final String SUBJECT = "subject";
+    static final String TITLE = "title";
+    static final String TYPE = "type";
 
     /**
      * Constructs a new adapter for Dublin Core around the given metadata object.
@@ -55,6 +56,23 @@ public class DublinCoreAdapter extends XMPSchemaAdapter {
      */
     public DublinCoreAdapter(Metadata meta) {
         super(meta, XMPSchemaRegistry.getInstance().getSchema(DublinCoreSchema.NAMESPACE));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void normalize() {
+        super.normalize();
+        normalizeToArray(CONTRIBUTOR, XMPArrayType.BAG);
+        normalizeToArray(CREATOR, XMPArrayType.SEQ);
+        normalizeToArray(DATE, XMPArrayType.SEQ);
+        normalizeToLangAlt(DESCRIPTION);
+        normalizeToArray(LANGUAGE, XMPArrayType.BAG);
+        normalizeToArray(PUBLISHER, XMPArrayType.BAG);
+        normalizeToArray(RELATION, XMPArrayType.BAG);
+        normalizeToLangAlt(RIGHTS);
+        normalizeToArray(SUBJECT, XMPArrayType.BAG);
+        normalizeToLangAlt(TITLE);
+        normalizeToArray(TYPE, XMPArrayType.BAG);
     }
 
     /**

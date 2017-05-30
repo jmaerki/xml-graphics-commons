@@ -21,15 +21,13 @@ package org.apache.xmlgraphics.xmp;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import java.util.Stack;
 
+import org.apache.xmlgraphics.util.QName;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
-
-import org.apache.xmlgraphics.util.QName;
 
 /**
  * Passive XMP parser implemented as a SAX DefaultHandler. After the XML document has been parsed
@@ -116,6 +114,7 @@ public class XMPHandler extends DefaultHandler {
     // --- Overrides ---
 
     /** {@inheritDoc} */
+    @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes)
                 throws SAXException {
         super.startElement(uri, localName, qName, attributes);
@@ -205,6 +204,7 @@ public class XMPHandler extends DefaultHandler {
     }
 
     /** {@inheritDoc} */
+    @Override
     public void endElement(String uri, String localName, String qName) throws SAXException {
         Attributes atts = (Attributes)attributesStack.pop();
         if (XMPConstants.XMP_NAMESPACE.equals(uri)) {
@@ -287,7 +287,9 @@ public class XMPHandler extends DefaultHandler {
             if (prop.getName() == null) {
                 throw new IllegalStateException("No content in XMP property");
             }
-            assert getCurrentProperties() != null : "no current property";
+            if (getCurrentProperties() == null) {
+                throw new IllegalStateException("No properties available at element " + qName);
+            }
             getCurrentProperties().setProperty(prop);
         }
 
@@ -302,6 +304,7 @@ public class XMPHandler extends DefaultHandler {
     */
 
     /** {@inheritDoc} */
+    @Override
     public void characters(char[] ch, int start, int length) throws SAXException {
         content.append(ch, start, length);
     }

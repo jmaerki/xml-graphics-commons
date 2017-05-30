@@ -20,10 +20,12 @@
 package org.apache.xmlgraphics.xmp;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.xmlgraphics.xmp.schemas.DublinCoreSchema;
 import org.apache.xmlgraphics.xmp.schemas.XMPBasicSchema;
 import org.apache.xmlgraphics.xmp.schemas.pdf.AdobePDFSchema;
+import org.apache.xmlgraphics.xmp.schemas.pdf.PDFAExtensionXMPSchema;
 import org.apache.xmlgraphics.xmp.schemas.pdf.PDFAXMPSchema;
 import org.apache.xmlgraphics.xmp.schemas.pdf.PDFVTXMPSchema;
 import org.apache.xmlgraphics.xmp.schemas.pdf.PDFXXMPSchema;
@@ -36,7 +38,7 @@ public final class XMPSchemaRegistry {
 
     private static XMPSchemaRegistry instance = new XMPSchemaRegistry();
 
-    private Map schemas = new java.util.HashMap();
+    private Map<String, XMPSchema> schemas = new java.util.HashMap<String, XMPSchema>();
 
     private XMPSchemaRegistry() {
         init();
@@ -50,6 +52,7 @@ public final class XMPSchemaRegistry {
     private void init() {
         addSchema(new DublinCoreSchema());
         addSchema(new PDFAXMPSchema());
+        addSchema(new PDFAExtensionXMPSchema());
         addSchema(new XMPBasicSchema());
         addSchema(new AdobePDFSchema());
         addSchema(new PDFXXMPSchema());
@@ -71,7 +74,21 @@ public final class XMPSchemaRegistry {
      * @return the XMP schema or null if none is available
      */
     public XMPSchema getSchema(String namespace) {
-        return (XMPSchema)schemas.get(namespace);
+        return schemas.get(namespace);
+    }
+
+    /**
+     * Returns a {@link Set} of all registered XMP schemas.
+     * @return the schemas
+     */
+    public Set<XMPSchema> getSchemas() {
+        return new java.util.HashSet<XMPSchema>(schemas.values());
+    }
+
+    public void normalize(Metadata metadata) {
+        for (XMPSchema schema : schemas.values()) {
+            schema.normalize(metadata);
+        }
     }
 
 }

@@ -18,8 +18,11 @@
 /* $Id$ */
 package org.apache.xmlgraphics.xmp.schemas.pdf;
 
+import org.apache.xmlgraphics.util.QName;
 import org.apache.xmlgraphics.xmp.Metadata;
 import org.apache.xmlgraphics.xmp.XMPConstants;
+import org.apache.xmlgraphics.xmp.XMPPropertyType;
+import org.apache.xmlgraphics.xmp.XMPPropertyType.Category;
 import org.apache.xmlgraphics.xmp.XMPSchema;
 
 public class XAPMMXMPSchema extends XMPSchema {
@@ -28,6 +31,19 @@ public class XAPMMXMPSchema extends XMPSchema {
     /** Creates a new schema instance for Dublin Core. */
     public XAPMMXMPSchema() {
         super(NAMESPACE, "xmpMM");
+        addType(new XMPPropertyType(new QName(NAMESPACE, XAPMMAdapter.DOCUMENT_ID),
+                "URI", Category.INTERNAL,
+                "The common identifier for all versions and renditions of a document. See Document"
+                    + " and instance IDs below."));
+        addType(new XMPPropertyType(new QName(NAMESPACE, XAPMMAdapter.INSTANCE_ID),
+                "URI", Category.INTERNAL,
+                "An identifier for a specific incarnation of a document, updated each time a file"
+                    + " is saved. It should be based on a UUID; see Document and"
+                    + " instance IDs below."));
+        addType(new XMPPropertyType(new QName(NAMESPACE, XAPMMAdapter.RENDITION_CLASS),
+                "Text", Category.INTERNAL,
+                "The rendition class name for this resource. This property should be absent or set"
+                    + " to default for a document version that is not a derived rendition."));
     }
 
     /**

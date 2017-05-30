@@ -19,6 +19,12 @@
 
 package org.apache.xmlgraphics.xmp;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -30,19 +36,12 @@ import java.util.TimeZone;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import org.apache.xmlgraphics.util.QName;
 import org.apache.xmlgraphics.xmp.schemas.DublinCoreAdapter;
 import org.apache.xmlgraphics.xmp.schemas.DublinCoreSchema;
 import org.apache.xmlgraphics.xmp.schemas.XMPBasicAdapter;
 import org.apache.xmlgraphics.xmp.schemas.XMPBasicSchema;
+import org.junit.Test;
 
 /**
  * Tests property access methods.
@@ -193,6 +192,26 @@ public class XMPPropertyTestCase {
         basic.setIdentifier("id2", "system1");
         assertEquals("id2", basic.getIdentifier("system1"));
         assertEquals(3, basic.getIdentifiers().length);
+    }
+
+    @Test
+    public void testSeqBehaviour() throws Exception {
+        Metadata xmp = new Metadata();
+        DublinCoreAdapter dc = DublinCoreSchema.getAdapter(xmp);
+        dc.addCreator("Creator1");
+        XMPProperty prop = xmp.getProperty(DublinCoreSchema.NAMESPACE, "creator");
+        assertNotNull(prop);
+        assertNotNull("Must be an array as it's a 'Seq ProperName'", prop.getArrayValue());
+    }
+
+    @Test
+    public void testAltBehaviour() throws Exception {
+        Metadata xmp = new Metadata();
+        DublinCoreAdapter dc = DublinCoreSchema.getAdapter(xmp);
+        dc.setDescription("de", "Einleitung");
+        XMPProperty prop = xmp.getProperty(DublinCoreSchema.NAMESPACE, "description");
+        assertNotNull(prop);
+        assertNotNull("Must be an array as it's a 'Lang Alt'", prop.getArrayValue());
     }
 
 }

@@ -28,10 +28,10 @@ import org.apache.xmlgraphics.xmp.XMPSchemaRegistry;
  */
 public class AdobePDFAdapter extends XMPSchemaAdapter {
 
-    private static final String KEYWORDS = "Keywords";
-    private static final String PDFVERSION = "PDFVersion";
-    private static final String PRODUCER = "Producer";
-    private static final String TRAPPED = "Trapped";
+    static final String KEYWORDS = "Keywords";
+    static final String PDFVERSION = "PDFVersion";
+    static final String PRODUCER = "Producer";
+    static final String TRAPPED = "Trapped";
 
     /**
      * Constructs a new adapter for Adobe PDF around the given metadata object.

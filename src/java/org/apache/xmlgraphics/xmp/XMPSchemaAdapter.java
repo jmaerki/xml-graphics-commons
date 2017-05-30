@@ -56,6 +56,34 @@ public class XMPSchemaAdapter {
     }
 
     /**
+     * Normalizes the property structure to their defined types. For example, a
+     * property of type "Seq ProperName" might be represented as a simple value instead
+     * of an array, but newer XMP standard versions require that the type must be
+     * adhered to.
+     */
+    public void normalize() {
+        //By default, do nothing since this class doesn't know any XMP schema.
+    }
+
+    protected XMPArray normalizeToLangAlt(String propName) {
+        XMPArray array = normalizeToArray(propName, XMPArrayType.ALT);
+        if (array != null) {
+            array.normalizeLangAlt();
+        }
+        return array;
+    }
+
+    protected XMPArray normalizeToArray(String propName, XMPArrayType arrayType) {
+        XMPProperty prop;
+        prop = meta.getProperty(getQName(propName));
+        if (prop != null) {
+            return prop.convertSimpleValueToArray(arrayType);
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Returns the QName for a given property
      * @param propName the property name
      * @return the resulting QName
@@ -90,9 +118,12 @@ public class XMPSchemaAdapter {
         QName name = getQName(propName);
         XMPProperty prop = meta.getProperty(name);
         if (prop == null) {
-            prop = new XMPProperty(name, value);
+            XMPArray array = new XMPArray(arrayType);
+            array.add(value);
+            prop = new XMPProperty(name, array);
             meta.setProperty(prop);
         } else {
+            //Make sure it's an array even if it was parsed as simple value
             prop.convertSimpleValueToArray(arrayType);
             prop.getArrayValue().add(value);
         }
@@ -215,11 +246,13 @@ public class XMPSchemaAdapter {
         XMPArray array;
         if (prop == null) {
             if (value != null && value.length() > 0) {
-                prop = new XMPProperty(name, value);
-                prop.setXMLLang(lang);
+                array = new XMPArray(XMPArrayType.ALT);
+                array.add(value, lang);
+                prop = new XMPProperty(name, array);
                 meta.setProperty(prop);
             }
         } else {
+            //Make sure it's an array even if it was parsed as simple value
             prop.convertSimpleValueToArray(XMPArrayType.ALT);
             array = prop.getArrayValue();
             array.removeLangValue(lang);
@@ -438,6 +471,5 @@ public class XMPSchemaAdapter {
         }
         return res;
     }
-
 
 }

@@ -20,23 +20,25 @@
 package org.apache.xmlgraphics.xmp.schemas.pdf;
 
 import org.apache.xmlgraphics.xmp.Metadata;
-import org.apache.xmlgraphics.xmp.XMPConstants;
 import org.apache.xmlgraphics.xmp.XMPSchema;
 import org.apache.xmlgraphics.xmp.merge.MergeRuleSet;
 
 /**
- * XMP Schema for PDF/A (ISO 19005-1).
+ * XMP Schema for the PDF/A property type schema (ISO 19005-1).
  */
-public class PDFAXMPSchema extends XMPSchema {
+public class PDFAPropertyTypeXMPSchema extends XMPSchema {
 
-    /** Namespace URI for PDF/A identification schema */
-    public static final String NAMESPACE = XMPConstants.PDF_A_IDENTIFICATION;
+    /** Namespace URI for PDF/A property type schema. */
+    public static final String NAMESPACE = "http://www.aiim.org/pdfa/ns/property";
+
+    /** Required namespace prefix for PDF/A property type schema. */
+    public static final String PREFIX = "pdfaProperty";
 
     private static MergeRuleSet mergeRuleSet = new MergeRuleSet();
 
-    /** Creates a new schema instance for the PDF/A identification schema. */
-    public PDFAXMPSchema() {
-        super(NAMESPACE, "pdfaid");
+    /** Creates a new schema instance for the PDF/A property type schema. */
+    public PDFAPropertyTypeXMPSchema() {
+        super(NAMESPACE, PREFIX);
     }
 
     /**

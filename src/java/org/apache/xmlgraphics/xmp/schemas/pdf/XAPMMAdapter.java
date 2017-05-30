@@ -23,6 +23,11 @@ import org.apache.xmlgraphics.xmp.XMPSchemaAdapter;
 import org.apache.xmlgraphics.xmp.XMPSchemaRegistry;
 
 public class XAPMMAdapter extends XMPSchemaAdapter {
+
+    static final String DOCUMENT_ID = "DocumentID";
+    static final String INSTANCE_ID = "InstanceID";
+    static final String RENDITION_CLASS = "RenditionClass";
+
     /**
      * Constructs a new adapter for XAP MM around the given metadata object.
      * @param meta the underlying metadata
@@ -42,14 +47,14 @@ public class XAPMMAdapter extends XMPSchemaAdapter {
      * @param c the value
      */
     public void setRenditionClass(String c) {
-        setValue("RenditionClass", c);
+        setValue(RENDITION_CLASS, c);
     }
 
     public void setInstanceID(String v) {
-        setValue("InstanceID", v);
+        setValue(INSTANCE_ID, v);
     }
 
     public void setDocumentID(String v) {
-        setValue("DocumentID", v);
+        setValue(DOCUMENT_ID, v);
     }
 }

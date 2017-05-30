@@ -20,7 +20,6 @@
 package org.apache.xmlgraphics.xmp;
 
 import java.net.URI;
-
 import java.util.List;
 
 import org.xml.sax.ContentHandler;
@@ -34,8 +33,8 @@ public class XMPArray extends XMPComplexValue {
     //TODO Property qualifiers are currently not supported, yet.
 
     private XMPArrayType type;
-    private List values = new java.util.ArrayList();
-    private List xmllang = new java.util.ArrayList();
+    private List<Object> values = new java.util.ArrayList<Object>();
+    private List<String> xmllang = new java.util.ArrayList<String>();
 
     /**
      * Main constructor
@@ -70,6 +69,7 @@ public class XMPArray extends XMPComplexValue {
     }
 
     /** {@inheritDoc} */
+    @Override
     public Object getSimpleValue() {
         if (values.size() == 1) {
             return getValue(0);
@@ -101,7 +101,7 @@ public class XMPArray extends XMPComplexValue {
         String v = null;
         String valueForParentLanguage = null;
         for (int i = 0, c = values.size(); i < c; i++) {
-            String l = (String)xmllang.get(i);
+            String l = xmllang.get(i);
             if ((l == null && lang == null) || (l != null && l.equals(lang))) {
                 v = values.get(i).toString();
                 break;
@@ -137,7 +137,7 @@ public class XMPArray extends XMPComplexValue {
             lang = XMPConstants.DEFAULT_LANGUAGE;
         }
         for (int i = 0, c = values.size(); i < c; i++) {
-            String l = (String)xmllang.get(i);
+            String l = xmllang.get(i);
             if ((XMPConstants.DEFAULT_LANGUAGE.equals(lang) && l == null) || lang.equals(l)) {
                 String value = (String)values.remove(i);
                 xmllang.remove(i);
@@ -210,13 +210,38 @@ public class XMPArray extends XMPComplexValue {
         return res;
     }
 
+    /**
+     * Some incoming XMP packages may not strictly follow the schema types. This method
+     * fixes some issues for "Lang Alt" properties that may be raised by PDF/A validators.
+     */
+    public void normalizeLangAlt() {
+        int langCount = 0;
+        int xDefaultCount = 0;
+        for (int i = 0, c = getSize(); i < c; i++) {
+            String lang = xmllang.get(i);
+            if (lang != null && lang.trim().length() > 0) {
+                langCount++;
+            }
+            if (XMPConstants.DEFAULT_LANGUAGE.equals(lang)) {
+                xDefaultCount++;
+            }
+        }
+        if (langCount < getSize() || xDefaultCount > 1) {
+            //Basically, there are deeper issues here which we might want to report in the future.
+        }
+        if (getSize() > 0 && xDefaultCount == 0) {
+            //mandatory x-default value is missing so just elect the first one
+            xmllang.set(0, XMPConstants.DEFAULT_LANGUAGE);
+        }
+    }
+
     /** {@inheritDoc} */
     public void toSAX(ContentHandler handler) throws SAXException {
         AttributesImpl atts = new AttributesImpl();
         handler.startElement(XMPConstants.RDF_NAMESPACE,
                 type.getName(), "rdf:" + type.getName(), atts);
         for (int i = 0, c = values.size(); i < c; i++) {
-            String lang = (String)xmllang.get(i);
+            String lang = xmllang.get(i);
             atts.clear();
             Object v = values.get(i);
             if (lang != null) {
@@ -243,6 +268,7 @@ public class XMPArray extends XMPComplexValue {
     }
 
     /** {@inheritDoc} */
+    @Override
     public String toString() {
         return "XMP array: " + type + ", " + getSize();
     }

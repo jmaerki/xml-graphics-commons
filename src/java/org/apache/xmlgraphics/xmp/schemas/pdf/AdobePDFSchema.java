@@ -19,8 +19,11 @@
 
 package org.apache.xmlgraphics.xmp.schemas.pdf;
 
+import org.apache.xmlgraphics.util.QName;
 import org.apache.xmlgraphics.xmp.Metadata;
 import org.apache.xmlgraphics.xmp.XMPConstants;
+import org.apache.xmlgraphics.xmp.XMPPropertyType;
+import org.apache.xmlgraphics.xmp.XMPPropertyType.Category;
 import org.apache.xmlgraphics.xmp.XMPSchema;
 import org.apache.xmlgraphics.xmp.merge.MergeRuleSet;
 
@@ -37,6 +40,16 @@ public class AdobePDFSchema extends XMPSchema {
     /** Creates a new schema instance for Dublin Core. */
     public AdobePDFSchema() {
         super(NAMESPACE, "pdf");
+
+        addType(new XMPPropertyType(new QName(NAMESPACE, AdobePDFAdapter.KEYWORDS),
+                "Text", Category.EXTERNAL,
+                "Keywords."));
+        addType(new XMPPropertyType(new QName(NAMESPACE, AdobePDFAdapter.PDFVERSION),
+                "Text", Category.INTERNAL,
+                ""));
+        addType(new XMPPropertyType(new QName(NAMESPACE, AdobePDFAdapter.PRODUCER),
+                "AgentName", Category.INTERNAL,
+                ""));
     }
 
     /**
@@ -49,6 +62,7 @@ public class AdobePDFSchema extends XMPSchema {
     }
 
     /** @see org.apache.xmlgraphics.xmp.XMPSchema#getDefaultMergeRuleSet() */
+    @Override
     public MergeRuleSet getDefaultMergeRuleSet() {
         return mergeRuleSet;
     }

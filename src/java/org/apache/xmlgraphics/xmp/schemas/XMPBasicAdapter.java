@@ -35,17 +35,17 @@ import org.apache.xmlgraphics.xmp.XMPStructure;
  */
 public class XMPBasicAdapter extends XMPSchemaAdapter {
 
-    private static final String ADVISORY = "Advisory";
-    private static final String BASE_URL = "BaseURL";
-    private static final String CREATE_DATE = "CreateDate";
-    private static final String CREATOR_TOOL = "CreatorTool";
-    private static final String IDENTIFIER = "Identifier";
-    private static final String LABEL = "Label";
-    private static final String METADATA_DATE = "MetadataDate";
-    private static final String MODIFY_DATE = "ModifyDate";
-    private static final String NICKNAME = "Nickname";
-    private static final String RATING = "Rating";
-    private static final String THUMBNAILS = "Thumbnails";
+    static final String ADVISORY = "Advisory";
+    static final String BASE_URL = "BaseURL";
+    static final String CREATE_DATE = "CreateDate";
+    static final String CREATOR_TOOL = "CreatorTool";
+    static final String IDENTIFIER = "Identifier";
+    static final String LABEL = "Label";
+    static final String METADATA_DATE = "MetadataDate";
+    static final String MODIFY_DATE = "ModifyDate";
+    static final String NICKNAME = "Nickname";
+    static final String RATING = "Rating";
+    static final String THUMBNAILS = "Thumbnails";
 
     /**
      * Constructs a new adapter for XMP Basic around the given metadata object.
