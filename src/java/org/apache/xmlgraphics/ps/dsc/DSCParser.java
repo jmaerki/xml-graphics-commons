@@ -123,7 +123,7 @@ public class DSCParser implements DSCParserConstants {
 
     private void checkLine(String line) throws DSCException {
         if (line == null) {
-            if (!eofFound) {
+            if (isCheckEOF() && !eofFound) {
                 throw new DSCException("%%EOF not found. File is not well-formed."
                         + " Line: " + currentLine);
             }
@@ -305,7 +305,7 @@ public class DSCParser implements DSCParserConstants {
             }
             if (line.startsWith("%%")) {
                 DSCComment comment = parseDSCLine(line);
-                if (comment.getEventType() == EOF) {
+                if (isCheckEOF() && comment.getEventType() == EOF) {
                     this.eofFound = true;
                 }
                 this.nextEvent = comment;
@@ -475,6 +475,7 @@ public class DSCParser implements DSCParserConstants {
 
     static class MyDSCListener implements DSCListener {
         private NestedDocumentHandler handler;
+        @Override
         public void processEvent(DSCEvent event, DSCParser parser) throws IOException,
                 DSCException {
             handler.handle(event, parser);
